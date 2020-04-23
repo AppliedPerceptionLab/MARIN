@@ -7,7 +7,7 @@ If you use MARIN in your research, cite:
 
 DISCLAIMER: MARIN is a research tool: It is not intended for normal clinical use, and is not FDA nor CE approved.
 
-MARIN has been tested to work on iOS and in conjunction with [Ibis](https://github.com/IbisNeuronav/Ibis) (with the additional [MARIN plugins](https://github.com/AppliedPerceptionLab/IbisPluginsExtraMARIN/tree/master/CommandsProcessing)). It should however be easily portable to Android as well, as it relies on Qt to handle mobile input/output, graphics, etc. All dependencies can be built for Android. It should also be possible to use it with Slicer or another neuronavigation platform (provided all necessary plugins be added to that platform), as it uses the [OpenIGTLink protocol](http://openigtlink.org/) for communication.
+MARIN has been tested to work on iOS and in conjunction with [Ibis](https://github.com/IbisNeuronav/Ibis) (with the additional [MARIN plugins](https://github.com/AppliedPerceptionLab/IbisPluginsExtraMARIN)). It should however be easily portable to Android as well, as it relies on Qt to handle mobile input/output, graphics, etc. All dependencies can be built for Android. It should also be possible to use it with Slicer or another neuronavigation platform (provided all necessary plugins be added to that platform), as it uses the [OpenIGTLink protocol](http://openigtlink.org/) for communication.
 
 ## Build Instructions:  
 
