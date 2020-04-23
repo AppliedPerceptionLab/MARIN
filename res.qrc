@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/frag.glsl</file>
+        <file>resources/vert.glsl</file>
+        <file>resources/warning_blue.jpg</file>
+    </qresource>
+</RCC>

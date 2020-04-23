@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/ServerConnection.qml</file>
+        <file>qml/ToolsBar.qml</file>
+        <file>qml/qmldir</file>
+        <file>qml/Profile.qml</file>
+        <file>qml/ProfileInfo.qml</file>
+        <file>qml/ActionButton.qml</file>
+        <file>qml/SettingsPanel.qml</file>
+        <file>qml/FiltersPanel.qml</file>
+        <file>qml/MainWindowWrapper.qml</file>
+        <file>qml/ReregisterPanel.qml</file>
+        <file>qml/AppSettings.qml</file>
+        <file>qml/DisplayModeButton.qml</file>
+        <file>qml/CameraButton.qml</file>
+    </qresource>
+</RCC>

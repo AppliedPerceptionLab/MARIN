@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/logo.png</file>
+        <file>images/ibis.png</file>
+        <file>images/network.png</file>
+        <file>images/man.png</file>
+        <file>images/gear.png</file>
+        <file>images/gear_on.png</file>
+        <file>images/filters.png</file>
+        <file>images/filters_on.png</file>
+        <file>images/eye.png</file>
+        <file>images/eye_on.png</file>
+        <file>images/brain.png</file>
+        <file>images/brain_on.png</file>
+        <file>images/off.png</file>
+        <file>images/on.png</file>
+        <file>images/exit.png</file>
+        <file>images/reregister_on.png</file>
+        <file>images/reregister.png</file>
+        <file>images/video_augmentation.png</file>
+        <file>images/augmentation_only.png</file>
+        <file>images/video_only.png</file>
+        <file>images/camera.png</file>
+        <file>images/camera_on.png</file>
+        <file>images/hand_on.png</file>
+        <file>images/hand.png</file>
+        <file>images/placeholder.png</file>
+    </qresource>
+</RCC>
