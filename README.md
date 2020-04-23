@@ -3,7 +3,7 @@
 MARIN is an application that can be used in conjunction with a neuronavigation platform to enable in situ AR guidance on a mobile device. It was developed by [Étienne Léger](https://ap-lab.ca/people/etienneleger/), at the [Applied Perception Lab](https://ap-lab.ca/).
 
 If you use MARIN in your research, cite: 
-> Léger, É., Reyes, J., Drouin, S., Popa, T., Hall, J. A., Collins, D. L., Kersten-Oertel, M. (2020), "MARIN: an Open Source Mobile Augmented Reality Interactive Neuronavigation System", International Journal of Computer Assisted Radiology and Surgery (in press).
+> Léger, É., Reyes, J., Drouin, S., Popa, T., Hall, J. A., Collins, D. L., Kersten-Oertel, M., "MARIN: an Open Source Mobile Augmented Reality Interactive Neuronavigation System", International Journal of Computer Assisted Radiology and Surgery (2020). https://doi.org/10.1007/s11548-020-02155-6
 
 DISCLAIMER: MARIN is a research tool: It is not intended for normal clinical use, and is not FDA nor CE approved.
 
