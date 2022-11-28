@@ -7,18 +7,18 @@
 
 //Define image capture size:
 //(it has to be supported by the camera of the device)
-#define CAMERA_WIDTH 1024
-#define CAMERA_HEIGHT 768
+#define CAMERA_WIDTH 1920
+#define CAMERA_HEIGHT 1440
 //Define camera capture format:
 //(it needs to be supported by the camera of the device)
-#define CAMERA_FORMAT QVideoFrame::Format_ARGB32
+#define CAMERA_FORMAT QVideoFrame::Format_Invalid
 //Define camera focus mode:
 //(it needs to be supported by the camera of the device)
 #define FOCUS_MODE ContinuousFocus
 
 //Define size of image that will be received from the neuronav platform:
-#define AUGMENTATION_WIDTH 800
-#define AUGMENTATION_HEIGHT 600
+#define AUGMENTATION_WIDTH 1366
+#define AUGMENTATION_HEIGHT 1024
 
 //set send mode and parameters:
 //available send modes are:
@@ -41,7 +41,7 @@
 #define THIS_DEVICE_NAME "MARIN"
 
 //These parameters should be defined by user to reflect the network setup:
-#define SERVER_ADDRESS "192.168.1.12"                           //Address of machine on which the neuronav platform runs
+#define SERVER_ADDRESS "192.168.0.103"                          //Address of machine on which the neuronav platform runs
 #define VIDEO_SENDER_PORT 18951                                 //UDP port to send video to
 
 #define COMMANDS_SENDER_PORT 18947                              //UDP port to send commands to
