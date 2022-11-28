@@ -19,9 +19,13 @@
 #include <QHostAddress>
 #include <QScreen>
 
+#include "videoFrameGrabber.h"
+
 int main(int argc, char *argv[]){
 
-    QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+    if(!HIGH_DPI_SCALING){
+        QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+    }
 
     QApplication app( argc, argv );
 
@@ -53,7 +57,7 @@ int main(int argc, char *argv[]){
     qDebug() << "[Main][Debug] This device's IP address is: " << thisaddress.toStdString().c_str();
     qDebug() << "[Main][Debug] Screen resolution is: " << screen_resolution_width << "by" << screen_resolution_height;
 
-    QVideoProbe * qvp = new QVideoProbe;
+    VideoFrameGrabber * grabber = new VideoFrameGrabber();
     Camera * camera = new Camera();
     Receiver * receiver = new Receiver( nullptr, thisaddress );
 
@@ -66,14 +70,18 @@ int main(int argc, char *argv[]){
     foreach ( const QCameraInfo &cameraInfo, cameras ) {
         //use backfacing camera:
         if ( cameraInfo.position() == QCamera::BackFace ) {
+            qDebug() << "[Main][Debug] Cam info"  << cameraInfo;
+            
             camera->setCamera(new QCamera( cameraInfo ) );
             //Choose focus modes (available focus modes for iPad 6th Gen are AutoFocus and ContinuousFocus):
             QCameraFocus * qcf = camera->getCamera()->focus();
             QCameraViewfinder * viewfinder = new QCameraViewfinder();
+            viewfinder->show();
             camera->getCamera()->setViewfinder( viewfinder );
             camera->getCamera()->setCaptureMode( QCamera::CaptureVideo );
             QCameraViewfinderSettings viewfinderSettings = camera->getCamera()->viewfinderSettings();
             camera->getCamera()->start();
+            qDebug() << "[Main][Debug] Camera"  << camera->getCamera();
             //output info on supported resolutions and check user-defined params:
             bool user_params_ok = false;
             QList<QCameraViewfinderSettings> ff = camera->getCamera()->supportedViewfinderSettings();
@@ -86,7 +94,10 @@ int main(int argc, char *argv[]){
                     camera_width = CAMERA_WIDTH;
                     camera_height = CAMERA_HEIGHT;
                     format = CAMERA_FORMAT;
+                    qDebug() << "Is the user selected focus mode supported? : " << qcf->isFocusModeSupported( QCameraFocus::FOCUS_MODE );
                     qcf->setFocusMode( QCameraFocus::FOCUS_MODE );
+                    grabber->setVideoFinderSettings(&ff[i]);
+                    assert(grabber->setSource(camera->getCamera()));
                     user_params_ok = true;
                 }
             }
@@ -103,6 +114,9 @@ int main(int argc, char *argv[]){
                 format = ff[0].pixelFormat();
             }
             //Pass values to GLWidget (window):
+            qDebug() << "[Main][Debug] Camera width set to: "  << camera_width;
+            qDebug() << "[Main][Debug] Camera height set to: "  << camera_height;
+            qDebug() << "[Main][Debug] Camera format set to: "  << format;
             viewfinderSettings.setResolution( camera_width, camera_height );
             viewfinderSettings.setPixelFormat( format );
             window.setCameraImageResolution( camera_width, camera_height );
@@ -119,9 +133,8 @@ int main(int argc, char *argv[]){
     Sender * sender = new Sender( nullptr, camera_width, camera_height, thisaddress, full_res_width, full_res_height );
     sender->setCamera( camera->getCamera() );
 
-    assert( qvp->setSource( camera->getCamera() ) );
     //Copy frames to buffer every time the QCamera has one available:
-    QObject::connect( qvp, SIGNAL( videoFrameProbed( QVideoFrame ) ), sender, SLOT( copy_frame( QVideoFrame ) ) );
+    QObject::connect( grabber, SIGNAL( videoFrameProbed( const QVideoFrame &) ), sender, SLOT( copy_frame( const QVideoFrame &) ) );
 
     //create threads handler:
     ThreadsHandler * th = new ThreadsHandler();
@@ -132,7 +145,8 @@ int main(int argc, char *argv[]){
 
     //connect signals and slots:
     QObject::connect( receiver, SIGNAL( new_image_received() ),                             &window,    SLOT( update_widget() ) );
-    QObject::connect( qvp,      SIGNAL( videoFrameProbed( QVideoFrame)),                    &window,    SLOT( new_camera_frame( QVideoFrame ) ) );
+    QObject::connect( grabber,  SIGNAL( videoFrameProbed( const QVideoFrame &)),            &window,    SLOT( new_camera_frame( const QVideoFrame & ) ) );
+    QObject::connect( camera->getCamera(),      SIGNAL( videoFrameProbed( const QVideoFrame )),                    &window,    SLOT( new_camera_frame( const QVideoFrame ) ) );
     QObject::connect( &window,  SIGNAL( toggleSenderSignal( bool ) ),                       th,         SLOT( toggleSender( bool ) ) );
     QObject::connect( &window,  SIGNAL( toggleReceiverSignal( bool ) ),                     th,         SLOT( toggleReceiver( bool ) ) );
     QObject::connect( th,       SIGNAL( serverFound() ),                                    &window,    SLOT( serverFound() ) );
@@ -158,7 +172,6 @@ int main(int argc, char *argv[]){
     app.exec();
 
     delete th;
-    delete qvp;
     delete camera;
 
     qDebug() << "Exiting normally.";

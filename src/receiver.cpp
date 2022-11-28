@@ -87,7 +87,8 @@ bool Receiver::receiveCommand(){
     headerMsg = igtl::MessageHeader::New();
     headerMsg->InitPack();
     //TODO: this should all be fixed
-    int r = commandsSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+    bool timeout(false);
+    int r = commandsSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize(), timeout);
     //this whould happen when the timeout was reached (there were no messages to receive.)
     if( r == -1 ){
         return true;
@@ -103,7 +104,8 @@ bool Receiver::receiveCommand(){
     if( strcmp(headerMsg->GetDeviceType(), "STATUS") == 0 ){
         statusMsg->SetMessageHeader(headerMsg);
         statusMsg->AllocatePack();
-        int sizei = commandsSocket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize());
+        bool timeout(false);
+        int sizei = commandsSocket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize(), timeout);
         statusMsg->Unpack();
         if( statusMsg->GetCode() == 1 ){            //STATUS_OK
             //everything is back to normal!

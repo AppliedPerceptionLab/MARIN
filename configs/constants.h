@@ -20,6 +20,8 @@
 #define AUGMENTATION_WIDTH 800
 #define AUGMENTATION_HEIGHT 600
 
+#define HIGH_DPI_SCALING true
+
 //set send mode and parameters:
 //available send modes are:
 //RC_BITRATE_MODE    ---    for constant bitrate

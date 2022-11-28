@@ -5,28 +5,30 @@ CONFIG += c++11
 QT += qml quick quickcontrols2 multimedia core multimediawidgets quickwidgets
 
 SOURCES += src/main.cpp \
+    src/camera.cpp \
+    src/commandsreceivethread.cpp \
     src/gestureHandler.cpp \
     src/glwidget.cpp \
+    src/openigtlsendthread.cpp \
+    src/qmlmainwindow.cpp \
     src/receiver.cpp \
     src/sender.cpp \
-    src/qmlmainwindow.cpp \
     src/threadshandler.cpp \
-    src/commandsreceivethread.cpp \
-    src/openigtlsendthread.cpp \
-    src/videoreceivethread.cpp \
-    src/camera.cpp
+    src/videoFrameGrabber.cpp \
+    src/videoreceivethread.cpp
 
 HEADERS += configs/constants.h \
+    src/camera.h \
+    src/commandsreceivethread.h \
     src/gestureHandler.h \
     src/glwidget.h \
+    src/openigtlsendthread.h \
+    src/qmlmainwindow.h \
     src/receiver.h \
     src/sender.h \
-    src/qmlmainwindow.h \
     src/threadshandler.h \
-    src/commandsreceivethread.h \
-    src/openigtlsendthread.h \
-    src/videoreceivethread.h \
-    src/camera.h
+    src/videoFrameGrabber.h \
+    src/videoreceivethread.h
 
 RESOURCES += res.qrc \
     images.qrc \
@@ -55,18 +57,31 @@ INCLUDEPATH += \
 #Should be present: libyuv, openigtlink and openh264 (sub-components: welsdec welsenc, processing, common)
 #TODO: should make a super build for external libraries
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/libyuv/release/ -lyuv
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/libyuv/debug/ -lyuv
-else:unix: LIBS += -L$$PWD/lib/libyuv/ -lyuv
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/libyuv_internal/release/ -lyuv_internal
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/libyuv_internal/debug/ -lyuv_internal
+else:unix: LIBS += -L$$PWD/lib/libyuv_internal/ -lyuv_internal
 
-INCLUDEPATH += $$PWD/lib/libyuv
-DEPENDPATH += $$PWD/lib/libyuv
+INCLUDEPATH += $$PWD/lib/libyuv_internal
+DEPENDPATH += $$PWD/lib/libyuv_internal
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv/release/libyuv.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv/debug/libyuv.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv/release/yuv.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv/debug/yuv.lib
-else:unix: PRE_TARGETDEPS += $$PWD/lib/libyuv/libyuv.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_internal/release/libyuv_internal.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_internal/debug/libyuv_internal.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_internal/release/yuv_internal.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_internal/debug/yuv_internal.lib
+else:unix: PRE_TARGETDEPS += $$PWD/lib/libyuv_internal/libyuv_internal.a
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/libyuv_neon/release/ -lyuv_neon
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/libyuv_neon/debug/ -lyuv_neon
+else:unix: LIBS += -L$$PWD/lib/libyuv_neon/ -lyuv_neon
+
+INCLUDEPATH += $$PWD/lib/libyuv_neon
+DEPENDPATH += $$PWD/lib/libyuv_neon
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_neon/release/libyuv_neon.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_neon/debug/libyuv_neon.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_neon/release/yuv_neon.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/libyuv_neon/debug/yuv_neon.lib
+else:unix: PRE_TARGETDEPS += $$PWD/lib/libyuv_neon/libyuv_neon.a
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/common/debug/ -lcommon
