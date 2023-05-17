@@ -50,11 +50,11 @@ INCLUDEPATH += \
     /PathToOpenIGTLinkBuild/Deps/openh264 \
     /PathToOpenIGTLinkBuild/Deps/openh264/codec \
     /PathToOpenIGTLinkBuild/Deps/openh264/codec/api/svc \
-    /PathToLibyuv/src/include \
-    /PathToLibyuv/src/include/libyuv
+    includes/libyuv \
+    includes/libyuv/libyuv
 
 #For now, MARIN looks for libraries in the lib folder. It is the user's responsability to compile necessary libraries and place them in proper locations.
-#Should be present: libyuv, openigtlink and openh264 (sub-components: welsdec welsenc, processing, common)
+#Should be present: libyuv (an arm64 build is provided), openigtlink and openh264 (sub-components: welsdec welsenc, processing, common)
 #TODO: should make a super build for external libraries
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/libyuv_internal/release/ -lyuv_internal
