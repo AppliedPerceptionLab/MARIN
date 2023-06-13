@@ -12,6 +12,8 @@
 	<string>Created by Qt/QMake</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>MARIN</string>
 	<key>CFBundlePackageType</key>
@@ -52,8 +54,6 @@
 	<string>This app requires access to the camera.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to your microphone</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>

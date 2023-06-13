@@ -11,7 +11,7 @@
 #define CAMERA_HEIGHT 768
 //Define camera capture format:
 //(it needs to be supported by the camera of the device)
-#define CAMERA_FORMAT QVideoFrame::Format_ARGB32
+#define CAMERA_FORMAT QVideoFrame::Format_Invalid
 //Define camera focus mode:
 //(it needs to be supported by the camera of the device)
 #define FOCUS_MODE ContinuousFocus
