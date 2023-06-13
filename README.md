@@ -12,15 +12,14 @@ MARIN has been tested to work on iOS and in conjunction with [Ibis](https://gith
 ## Build Instructions:  
 
 ### Dependencies  
-* [Qt](https://www.qt.io/) >= 5.14.2  
-(prior to that version, QTBUG-79935 will cause problems.)  
-* [libyuv](https://chromium.googlesource.com/libyuv/libyuv/)  
+* [Qt](https://www.qt.io/) need at least 5.14.2 and is currently tested with 5.15.2  
+    [Download Qt: Get Qt Online Installer](https://www.qt.io/download-qt-installer)
+* [libyuv](https://chromium.googlesource.com/libyuv/libyuv/) (bundled with MARIN, in /lib)  
 * [OpenIGTLink](https://github.com/openigtlink/OpenIGTLink)  
 * [OpenH264](https://github.com/cisco/openh264)  (Can be built through the SuperBuild of OpenIGTLink.)
 
 It is up to the user to build these libraries and place them in the lib directories, where MARIN can find them. The expected structure is:  
 ./lib/common/libcommon.a  
-./lib/libyuv/libyuv.a  
 ./lib/openIGTLink/libOpenIGTLink.a  
 ./lib/processing/libprocessing.a  
 ./lib/welsdec/libwelsdec.a  
@@ -31,25 +30,7 @@ Configuration files are placed in the configs folder. It is up to the user to se
 
 ### iOS-specific build instructions:  
 
-######   OpenIGTLink  
-git clone https://github.com/openigtlink/OpenIGTLink.git  
-mkdir build_oigtl  
-cd build_oigtl  
-cmake -G Xcode -DOPENIGTLINK_USE_H264=true ../openigtlink  
-cd in oh264 directory and build for arm:  
-make OS=ios ARCH=arm64  
-As of last version, it is needed to add "build_ios/Deps/openh264/codec/common/inc" to the header include paths in xcode for the common project.  
-
-Open the project in Xcode  
-Change base SDK to iOS  
-Add all subprojects to the OpenIGTLink project (and add them to target dependencies)  
-(projects are openh264, commons, processing, welsenc and welsdec)  
-(they should be in ⁨build_oigtl/Deps⁩/openh264⁩/codec⁩/build⁩/iOS⁩/)  
-In the Xcode interface, select OpenIGTLink target and build it  
-Then copy all created .a to the corresponding locations in the MARIN lib folder
-
-### Thomas build instructions:
-Below is a step-by-step guide for compiling MARIN on an iPad Pro (12.9-inch) (5th generation) using Xcode 13.4 on a MacBook Pro (13-inch, 2017): 
+Below is a step-by-step guide for compiling MARIN on an iPad. Is currently tested on the iPad Pro (12.9-inch) (5th generation) using Xcode 13.4 on a MacBook Pro (13-inch, 2017).
 
 #### OpenIGTLink + OpenH264
 
@@ -190,13 +171,6 @@ This will create the following libraries:
 - *../Volumes/Expansion/ThomasMac/Documents/src/out/Debug/obj/**libyuv_internal.a***
 - *../Volumes/Expansion/ThomasMac/Documents/src/out/Debug/obj/**libyuv_neon.a***
 
-##### Installing QT
-
-5.14.2 ≤ Version ≤ 5.15
-
-[Download Qt: Get Qt Online Installer](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4)
-
-*QT* was also downloaded and built on the external hard drive in the directory: */Volumes/Expansion/ThomasMac/Qt*
 
 ##### Building MARIN
 
