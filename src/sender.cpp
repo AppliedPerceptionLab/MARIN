@@ -6,7 +6,7 @@ Sender::Sender( QObject *parent, int w, int h, QString thisaddress, int frw, int
     this->parent = parent;
     setSendingVideo( INITIALLY_SENDING_VIDEO );
     setServerAddress( SERVER_ADDRESS );
-    qInfo() << "[Sender] Will send video to " << hostname;
+    qInfo() << "[Sender] Will send image/video to " << hostname;
     width = w;
     height = h;
     full_res_width = frw;
@@ -17,17 +17,45 @@ Sender::Sender( QObject *parent, int w, int h, QString thisaddress, int frw, int
     srcPic->picWidth = width;
     srcPic->picHeight = height;
     this->thisaddress = thisaddress;
-    udpVideoServerSocket->SetIPAddress( thisaddress.toStdString().c_str() );
-    udpVideoServerSocket->SetPortNumber( port_video );
-    udpCommandsServerSocket->SetIPAddress( thisaddress.toStdString().c_str() );
-    udpCommandsServerSocket->SetPortNumber( port_commands );
-//    h264StreamEncoder = new H264Encoder( OH264_CONFIG_FILE_PATH );
-    h264StreamEncoder = new H264Encoder( "" );
+    switch( VIDEO_MODE ){
+        case VideoModes::Image_Y:
+            // TODO?
+            break;
+        case VideoModes::Image_RGB:
+            // TODO?
+            break;
+        case VideoModes::Image_BGRA:
+            // TODO?
+            break;
+        case VideoModes::I420:
+            I420StreamEncoder = new I420Encoder( "" );
+            encoder = I420StreamEncoder;
+            // TODO?
+            break;
+        case VideoModes::H264:
+            //    h264StreamEncoder = new H264Encoder( OH264_CONFIG_FILE_PATH );
+            h264StreamEncoder = new H264Encoder( "" );
+            h264StreamEncoder->SetSpeed( HIGH_COMPLEXITY );
+            encoder = h264StreamEncoder;
+            break;
+        case VideoModes::VIDEOMODE_UNDEFINED:
+            std::cerr << "Video mode must be defined in configuration file." << std::endl;
+            exit(1);
+            break;
+    }
+    switch( IMAGE_TRANSMISSION_PROTOCOL ){
+        case TransmissionProtocol::TCP:
+            break;
+        case TransmissionProtocol::UDP:
+            udpCommandsServerSocket->SetIPAddress( thisaddress.toStdString().c_str() );
+            udpCommandsServerSocket->SetPortNumber( port_commands );
+            break;
+        case TransmissionProtocol::PROTOCOL_UNDEFINED:
+            std::cerr << "Transmission protocol must be defined in configuration file." << std::endl;
+            exit(1);
+            break;
+    }
     
-    h264StreamEncoder->SetSpeed( HIGH_COMPLEXITY );
-    
-    encoder = h264StreamEncoder;
-
     ServerTimer = igtl::TimeStamp::New();
     
     //TODO: Should eventually give user control over this value.
@@ -148,7 +176,7 @@ bool Sender::send(){
     if ( !connected_commands ){
         connectCommands();
     }
-    if( (!connected_commands && !connected_video) || !init_done ){
+    if( (!connected_commands && !connected_video ) || !init_done ){
         return false;
     }
     //if there is a command to send we do this first:
@@ -210,8 +238,9 @@ bool Sender::send(){
         memcpy( frame, commandMsg->GetPackPointer(), commandMsg->GetPackSize() );
         rtpWrapper->WrapMessageAndSend( udpCommandsServerSocket, frame, commandMsg->GetPackSize() );
     }
-    //then we send the video frame:
+    //then we send the image/video frame:
     if( m_sendingVideo ){
+        // copy data from buffer:
         if ( newest_is_1 ){
             if ( !slot1_being_written ){
                 slot1_being_read = true;
@@ -229,33 +258,191 @@ bool Sender::send(){
                 qDebug() << "[Sender] Buffer.slot2 is in use.";
             }
         }
-        videoMessage = igtl::VideoMessage::New();
-        videoMessage->SetDeviceName( THIS_DEVICE_NAME );
-        videoMessage->SetCodecType( IGTL_VIDEO_CODEC_NAME_H264 );
-        videoMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
-        int convertError = libyuv::ARGBToI420( send_buffer, width*4, converted, width, converted + width * height, width / 2, converted + width * height * 5/4  , width / 2, width, height);
-        if( convertError == -1 ){
-            qCritical() << "[Sender] Frame convert error.";
-            return false;
-        }
-        srcPic->data[0] = converted;
-        srcPic->data[1] = converted + width * height;
-        srcPic->data[2] = converted + width * height * 5/4;
+        //send data:
+        if( VIDEO_MODE == VideoModes::Image_Y ){
+            if ( tcpImageServerSocket->GetConnected() ) {
+                int   size[]     = { width, height, 1 };                   // image dimension
+                float spacing[]  = { 1.0, 1.0, 1.0 };                 // spacing (mm/pixel)
+                int   scalarType = igtl::ImageMessage::TYPE_UINT8;  // scalar type
+                imageMessage = igtl::ImageMessage::New();
+                imageMessage->SetDimensions( size );
+                imageMessage->SetSpacing( spacing );
+                imageMessage->SetScalarType( scalarType );
+                imageMessage->SetDeviceName( THIS_DEVICE_NAME );
+                imageMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
+                imageMessage->SetMessageID( msgID++ );
+                imageMessage->AllocateScalars();
+                
+                int convertError = libyuv::ARGBToI420( send_buffer, width*4, converted, width, converted + width * height, width / 2, converted + width * height * 5/4  , width / 2, width, height);
+                if( convertError == -1 ){
+                    qCritical() << "[Sender] Frame convert error.";
+                    return false;
+                }
+                srcPic->data[0] = converted;
+                srcPic->data[1] = converted + width * height;
+                srcPic->data[2] = converted + width * height * 5/4;
+                
+                //set timestamp:
+                ServerTimer->GetTime();
+                imageMessage->SetTimeStamp( ServerTimer );
+                
+                memcpy( imageMessage->GetScalarPointer(), converted, imageMessage->GetPackSize() );
+                imageMessage->Pack();
+                if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
+                    imageSocket->Send( imageMessage -> GetPackPointer(), imageMessage -> GetPackSize() );
+                    std::cout << "Sending image (TCP) with ID: " << msgID << std::endl;
+                }else{
+                    //TODO, add support
+                    std::cerr << "Configuration not supported." << std::endl;
+                }
 
-        //set timestamp:
-        ServerTimer->GetTime();
-        videoMessage->SetTimeStamp(ServerTimer);
-        int encodeError = encoder->EncodeSingleFrameIntoVideoMSG( srcPic, videoMessage, false );
-        if( encodeError == -1 ){
-            qCritical() << "[Sender] Frame encode error.";
-            return false;
-        }
+            }else{
+                std::cout << "Not connected (TCP Image)" << std::endl;
+            }
+        }else if( VIDEO_MODE == VideoModes::Image_BGRA ){
+            if ( tcpImageServerSocket->GetConnected() ) {
 
-        uchar * frame = new uchar[ videoMessage->GetPackSize() ];
-        memcpy( frame, videoMessage->GetPackPointer(), videoMessage->GetPackSize() );
-        rtpWrapper->WrapMessageAndSend( udpVideoServerSocket, frame, videoMessage->GetPackSize() );
-        std::cout << "SEND!" << std::endl;
-        delete [] frame;
+                int   size[]     = { width, height, 1 };                   // image dimension
+                float spacing[]  = { 1., 1., 1. };                   // spacing (mm/pixel)
+                int   scalarType = igtl::ImageMessage::TYPE_UINT8;      // scalar type
+                
+                imageMessage = igtl::ImageMessage::New();
+                imageMessage->SetDimensions( size );
+                imageMessage->SetSpacing( spacing );
+                imageMessage->SetScalarType( scalarType );
+                imageMessage->SetNumComponents( 4 );
+                imageMessage->SetDeviceName( THIS_DEVICE_NAME );
+                imageMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
+                imageMessage->SetMessageID( msgID++ );
+                imageMessage->AllocateScalars();
+                
+                //set timestamp:
+                ServerTimer->GetTime();
+                imageMessage->SetTimeStamp( ServerTimer );
+                
+                memcpy( imageMessage->GetScalarPointer(), send_buffer, imageMessage->GetPackSize() );
+                imageMessage->Pack();
+                if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
+                    imageSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
+                    std::cout << "Sending image (TCP) with ID: " << msgID << std::endl;
+                }else{
+                    //TODO, add support
+                    std::cerr << "Configuration not supported." << std::endl;
+                }
+
+            }else{
+                std::cout << "Not connected (TCP Image)" << std::endl;
+            }
+        }else if( VIDEO_MODE == VideoModes::Image_RGB ){
+            if ( tcpImageServerSocket->GetConnected() ) {
+
+                int   size[]     = { width, height, 1 };                   // image dimension
+                float spacing[]  = { 1., 1., 1. };                   // spacing (mm/pixel)
+                int   scalarType = igtl::ImageMessage::TYPE_UINT8;      // scalar type
+                
+                imageMessage = igtl::ImageMessage::New();
+                imageMessage->SetDimensions( size );
+                imageMessage->SetSpacing( spacing );
+                imageMessage->SetScalarType( scalarType );
+                imageMessage->SetNumComponents( 3 );
+                imageMessage->SetDeviceName( THIS_DEVICE_NAME );
+                imageMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
+                imageMessage->SetMessageID( msgID++ );
+                imageMessage->AllocateScalars();
+                
+                //set timestamp:
+                ServerTimer->GetTime();
+                imageMessage->SetTimeStamp( ServerTimer );
+
+                uchar * RGB_buffer = new uchar[ width*height*3 ];
+                for( int i = 0; i < width; i++ ){
+                    for( int j = 0; j < height; j++ ){
+                        RGB_buffer[ i*3 + j*width*3 + 0] = send_buffer[ i*4 + j*width*4 + 2 ];
+                        RGB_buffer[ i*3 + j*width*3 + 1] = send_buffer[ i*4 + j*width*4 + 1 ];
+                        RGB_buffer[ i*3 + j*width*3 + 2] = send_buffer[ i*4 + j*width*4 + 0 ];
+                    }
+                }
+                memcpy( imageMessage->GetScalarPointer(), RGB_buffer, imageMessage->GetPackSize() );
+                imageMessage->Pack();
+                if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
+                    imageSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
+                    std::cout << "Sending image (TCP) with ID: " << msgID << std::endl;
+                }else{
+                    //TODO, add support
+                    std::cerr << "Configuration not supported." << std::endl;
+                }
+            }else{
+                std::cout << "Not connected (TCP Image)" << std::endl;
+            }
+        }else if( VIDEO_MODE == VideoModes::I420 ){
+            videoMessage = igtl::VideoMessage:: New();
+            videoMessage->SetDeviceName( THIS_DEVICE_NAME );
+            videoMessage->SetCodecType( IGTL_VIDEO_CODEC_NAME_H264 );
+            videoMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
+            int convertError = libyuv::ARGBToI420( send_buffer, width*4, converted, width, converted + width * height, width / 2, converted + width * height * 5/4  , width / 2, width, height);
+            if( convertError == -1 ){
+                qCritical() << "[Sender] Frame convert error.";
+                return false;
+            }
+            srcPic->data[0] = converted;
+            srcPic->data[1] = converted + width * height;
+            srcPic->data[2] = converted + width * height * 5/4;
+            
+            //set timestamp:
+            ServerTimer->GetTime();
+            videoMessage->SetTimeStamp(ServerTimer);
+            videoMessage->SetMessageID( msgID++ );
+            int encodeError = encoder->EncodeSingleFrameIntoVideoMSG( srcPic, videoMessage, false );
+            if( encodeError == -1 ){
+                qCritical() << "[Sender] Frame encode error.";
+                return false;
+            }
+            
+            uchar * frame = new uchar[ videoMessage->GetPackSize() ];
+            memcpy( frame, videoMessage->GetPackPointer(), videoMessage->GetPackSize() );
+            if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
+                imageSocket->Send( videoMessage->GetPackPointer(), videoMessage->GetPackSize() );
+                std::cout << "Sending video (TCP) with ID: " << msgID << std::endl;
+            }else{
+                //TODO, add support
+                std::cerr << "Configuration not supported." << std::endl;
+            }
+            delete [] frame;
+        }else if( VIDEO_MODE == VideoModes::H264 ){
+            videoMessage = igtl::VideoMessage:: New();
+            videoMessage->SetDeviceName( THIS_DEVICE_NAME );
+            videoMessage->SetCodecType( IGTL_VIDEO_CODEC_NAME_H264 );
+            videoMessage->SetHeaderVersion( IGTL_HEADER_VERSION_2 );
+            int convertError = libyuv::ARGBToI420( send_buffer, width*4, converted, width, converted + width * height, width / 2, converted + width * height * 5/4  , width / 2, width, height);
+            if( convertError == -1 ){
+                qCritical() << "[Sender] Frame convert error.";
+                return false;
+            }
+            srcPic->data[0] = converted;
+            srcPic->data[1] = converted + width * height;
+            srcPic->data[2] = converted + width * height * 5/4;
+            
+            //set timestamp:
+            ServerTimer->GetTime();
+            videoMessage->SetTimeStamp(ServerTimer);
+            videoMessage->SetMessageID( msgID++ );
+            int encodeError = encoder->EncodeSingleFrameIntoVideoMSG( srcPic, videoMessage, false );
+            if( encodeError == -1 ){
+                qCritical() << "[Sender] Frame encode error.";
+                return false;
+            }
+            
+            uchar * frame = new uchar[ videoMessage->GetPackSize() ];
+            memcpy( frame, videoMessage->GetPackPointer(), videoMessage->GetPackSize() );
+            if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::UDP ){
+                rtpWrapper->WrapMessageAndSend( udpVideoServerSocket, frame, videoMessage->GetPackSize() );
+                std::cout << "Sending video (UDP) with ID: " << msgID << std::endl;
+            }else{
+                //TODO, add support
+                std::cerr << "Configuration not supported." << std::endl;
+            }
+            delete [] frame;
+        }
     }
     return true;
 }
@@ -264,17 +451,29 @@ bool Sender::send(){
 ////////////////////////////////////////////////   CONNECT   ///////////////////////////////////////////
 bool Sender::connectVideo(){
     if( !connected_video ){
-        //create UDP socket for video:
-        int s = udpVideoServerSocket->CreateUDPServer();
-        if ( s < 0 ){
-            std::cerr << "[Sender] Could not create a server socket for video (UDP)." << std::endl;
-            connected_video = false;
-        }else{
-            int clientID = udpVideoServerSocket->AddClient( hostname.toStdString().c_str(), port_video, 0 );
-            std::cout << "[Sender] added client: " << clientID << std::endl;
-            connected_video = clientID >= 0;
-            std::cout << "[Sender] Created a server socket. (UDP for video)" << std::endl;
-    //        socket->SetTimeout(3000);
+        if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
+            //create TCP socket:
+            int st = tcpImageServerSocket->CreateServer( port_video );
+            if( st < 0 ){
+                std::cerr << "[Sender] Could not create a server socket for image (TCP)." << std::endl;
+                connected_video = false;
+            }else{
+                std::cout << "[Sender] Created a server socket. (TCP for image)" << std::endl;
+                    imageSocket = tcpImageServerSocket->WaitForConnection(3000);
+                    connected_video = true;
+            }
+        }else if( IMAGE_TRANSMISSION_PROTOCOL == TransmissionProtocol::UDP ){
+            //create UDP socket:
+            int s = udpVideoServerSocket->CreateUDPServer();
+            if ( s < 0 ){
+                std::cerr << "[Sender] Could not create a server socket for video (UDP)." << std::endl;
+                connected_video = false;
+            }else{
+                int clientID = udpVideoServerSocket->AddClient( hostname.toStdString().c_str(), port_video, 0 );
+                std::cout << "[Sender] added client: " << clientID << std::endl;
+                connected_video = clientID >= 0;
+                std::cout << "[Sender] Created a server socket. (UDP for video)" << std::endl;
+            }
         }
     }else{
         qWarning() << "[Sender] Already connected to send video. Nothing to do.";
@@ -313,11 +512,17 @@ void Sender::closeSocket(){
 bool Sender::setEncoder( int w, int h ){
     qDebug() << "[Sender] Dimensions of the H264 encoder set to: " << w << "x" << h;
     qDebug() << "[Sender] RCMode set to " << IMAGE_SEND_MODE << ", with " << TARGET_BIT_RATE << " bitrate.";
-    h264StreamEncoder->SetPicWidthAndHeight( w, h );
-    h264StreamEncoder->SetRCMode( IMAGE_SEND_MODE );
-    h264StreamEncoder->SetRCTaregetBitRate( TARGET_BIT_RATE );
-    h264StreamEncoder->InitializeEncoder();
-    encoder = h264StreamEncoder;
+    if( VIDEO_MODE == VideoModes::H264 ){
+        h264StreamEncoder->SetPicWidthAndHeight( w, h );
+        h264StreamEncoder->SetRCMode( IMAGE_SEND_MODE );
+        h264StreamEncoder->SetRCTaregetBitRate( TARGET_BIT_RATE );
+        h264StreamEncoder->InitializeEncoder();
+        encoder = h264StreamEncoder;
+    }else if( VIDEO_MODE == VideoModes::I420 ){
+        I420StreamEncoder->SetPicWidthAndHeight( w, h );
+        I420StreamEncoder->InitializeEncoder();
+        encoder = I420StreamEncoder;
+    }
     return true;
 }
 
