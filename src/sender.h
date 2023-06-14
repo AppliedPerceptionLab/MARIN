@@ -46,6 +46,8 @@
 #include "igtl_util.h"
 #include "igtlH264Encoder.h"
 #include "igtlH264Decoder.h"
+#include "igtlI420Encoder.h"
+#include "igtlI420Decoder.h"
 
 #include <configs/constants.h>
 
@@ -156,9 +158,10 @@ private:
     bool init_done = false;
     bool connected_video = false;
     bool connected_commands = false;
-    bool connected_images = false;
+    int msgID = 0;
 
     H264Encoder::Pointer h264StreamEncoder;
+    I420Encoder::Pointer I420StreamEncoder;
     GenericEncoder::Pointer encoder;
     SourcePicture* srcPic = new SourcePicture();
     
@@ -172,6 +175,9 @@ private:
     //socket to send video on:
     igtl::UDPServerSocket::Pointer udpVideoServerSocket = igtl::UDPServerSocket::New();
     igtl::MessageRTPWrapper::Pointer rtpWrapper = igtl::MessageRTPWrapper::New();
+    //socket to send image on:
+    igtl::ServerSocket::Pointer tcpImageServerSocket = igtl::ServerSocket::New();
+    igtl::ClientSocket::Pointer imageSocket = igtl::ClientSocket::New();
     
     igtl::MultiThreader::Pointer threader = igtl::MultiThreader::New();
     igtl::MutexLock::Pointer glock = igtl::MutexLock::New();

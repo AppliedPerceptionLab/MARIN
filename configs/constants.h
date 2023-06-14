@@ -44,8 +44,14 @@
 
 //These parameters should be defined by user to reflect the network setup:
 #define SERVER_ADDRESS "192.168.1.12"                           //Address of machine on which the neuronav platform runs
-#define VIDEO_SENDER_PORT 18951                                 //UDP port to send video to
 
+enum VideoModes { VIDEOMODE_UNDEFINED, H264, I420, Image_BGRA, Image_RGB, Image_Y };
+#define VIDEO_MODE VideoModes::Image_RGB
+enum TransmissionProtocol { PROTOCOL_UNDEFINED, TCP, UDP };
+#define IMAGE_TRANSMISSION_PROTOCOL TransmissionProtocol::TCP
+//TODO: Add protocol switch for other streams
+
+#define VIDEO_SENDER_PORT 18951                                 //port to send video to
 #define COMMANDS_SENDER_PORT 18947                              //UDP port to send commands to
 #define VIDEO_RECEIVER_PORT 18946                               //UDP port to receive video from
 #define COMMANDS_RECEIVER_PORT 18949                            //TCP port to receive commands/status updates from
@@ -63,7 +69,7 @@
 //        (this part wouldn't typically need to be changed)
 
 //Commands structure definition:
-enum CommandName { UNDEFINED, ToggleAnatomy, ToggleQuadView, NavigateSlice, ReregisterAR, RotateView, FreezeFrame, ResetReregistration, ArbitraryCommand };
+enum CommandName { COMMAND_UNDEFINED, ToggleAnatomy, ToggleQuadView, NavigateSlice, ReregisterAR, RotateView, FreezeFrame, ResetReregistration, ArbitraryCommand };
 struct Command {    CommandName c ;
                     double param1;
                     double param2;
