@@ -7,9 +7,9 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
 
-#include <receiver.h>
+#include "receiver.h"
 #include "gestureHandler.h"
-#include <constants.h>
+#include "constants.h"
 
 //the AR field cannot be less than RESIZE_LIMIT pixels of radius
 #define RESIZE_LIMIT 10
