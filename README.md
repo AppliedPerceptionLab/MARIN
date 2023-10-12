@@ -1,5 +1,12 @@
 # MARIN: Mobile Augmented Reality Interactive Neuronavigator  
 
+<figure>
+  <img
+  src="https://github.com/AppliedPerceptionLab/MARIN/assets/17100565/43fd0dee-5f2f-4210-a970-ab4fc2cbbd10"
+  alt="MARIN displaying segmented vessels over a phantom head">
+  <figcaption>MARIN displaying segmented vessels over a phantom head</figcaption>
+</figure>
+
 MARIN is an application that can be used in conjunction with a neuronavigation platform to enable in situ AR guidance on a mobile device. It was developed by [Étienne Léger](https://ap-lab.ca/people/etienneleger/), at the [Applied Perception Lab](https://ap-lab.ca/).
 
 If you use MARIN in your research, cite: 
