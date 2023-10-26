@@ -49,7 +49,7 @@ INCLUDEPATH += \
     /PathToOpenIGTLinkBuild/lib/Debug \
     /PathToOpenIGTLinkBuild/Deps/openh264 \
     /PathToOpenIGTLinkBuild/Deps/openh264/codec \
-    /PathToOpenIGTLinkBuild/Deps/openh264/codec/api/svc \
+    /PathToOpenIGTLinkBuild/Deps/openh264/codec/api/wels \
     includes/libyuv \
     includes/libyuv/libyuv
 

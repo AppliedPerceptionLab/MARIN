@@ -71,3 +71,7 @@ Thumbs.db
 *.dll
 *.exe
 MARIN.pro
+
+# Xcode
+MARIN.xcodeproj
+.xcode
