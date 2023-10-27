@@ -46,9 +46,9 @@ int main(int argc, char *argv[]){
     QList<QHostAddress> addresses = QNetworkInterface::allAddresses();
     QHostAddress address;
     for( int i = 0; i < addresses.length(); i++ ) {
-        if ( addresses.at(i).protocol() == QAbstractSocket::IPv4Protocol && addresses.at(i) != QHostAddress(QHostAddress::LocalHost) ){
-            //we take the first address that matches and leave (the second one is bluetooth usually)
-            //TODO: this should eventually be set by user in a proper way
+        // 169.254.0.0/16 is usually going to be Bluetooth
+        if ( addresses.at(i).protocol() == QAbstractSocket::IPv4Protocol && addresses.at(i) != QHostAddress(QHostAddress::LocalHost) && !(addresses.at(i).isInSubnet( QHostAddress("169.254.0.0"), 16)) ){
+            //TODO: deal with case where more than one network adapter (isn't an issue on current generation iPads)
             address = addresses.at(i);
             break;
         }
