@@ -88,9 +88,9 @@ bool Receiver::receiveCommand(){
     headerMsg->InitPack();
     //TODO: this should all be fixed
     bool timeout(false);
-    int r = commandsSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize(), timeout);
+    ulong r = commandsSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize(), timeout);
     //this whould happen when the timeout was reached (there were no messages to receive.)
-    if( r == -1 ){
+    if( r == 0 ){
         return true;
     }
     
@@ -105,7 +105,7 @@ bool Receiver::receiveCommand(){
         statusMsg->SetMessageHeader(headerMsg);
         statusMsg->AllocatePack();
         bool timeout(false);
-        int sizei = commandsSocket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize(), timeout);
+        commandsSocket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize(), timeout);
         statusMsg->Unpack();
         if( statusMsg->GetCode() == 1 ){            //STATUS_OK
             //everything is back to normal!
@@ -138,7 +138,7 @@ bool Receiver::receive(){
         getRTPMutex()->lock();
             std::map<igtl_uint32, igtl::UnWrappedMessage*>::iterator it = rtpWrapper->unWrappedMessages.begin();
             igtlUint8 * message = new igtlUint8[it->second->messageDataLength];
-            int MSGLength = it->second->messageDataLength;
+            ulong MSGLength = it->second->messageDataLength;
             memcpy( message, it->second->messagePackPointer, it->second->messageDataLength );
             delete it->second;
             it->second = nullptr;
@@ -163,7 +163,11 @@ bool Receiver::receive(){
                 videoMsg->Unpack(0);
                 decoder->DecodeVideoMSGIntoSingleFrame( videoMsg, decodedPic );
                 int conversion_success = libyuv::I420ToARGB( decodedPic->data[0], AUGMENTATION_WIDTH, decodedPic->data[0] + AUGMENTATION_WIDTH * AUGMENTATION_HEIGHT, AUGMENTATION_WIDTH / 2, decodedPic->data[0] + AUGMENTATION_WIDTH * AUGMENTATION_HEIGHT * 5/4, AUGMENTATION_WIDTH / 2, act_img->bits(), AUGMENTATION_WIDTH * 4, AUGMENTATION_WIDTH, AUGMENTATION_HEIGHT );
-                emit new_image_received();
+                if( conversion_success == -1 ){
+                    qWarning() << "[Receiver] I420ToARGB conversion failure.";
+                }else{
+                    emit new_image_received();
+                }
             }else{
                 qCritical() << "[Receiver] The message length is " << MSGLength << " but it should be " << videoMsg->GetPackSize();
                 delete [] message;

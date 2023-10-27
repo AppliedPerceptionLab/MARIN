@@ -7,7 +7,7 @@ QT += qml quick quickcontrols2 multimedia core multimediawidgets quickwidgets
 SOURCES += src/main.cpp \
     src/camera.cpp \
     src/commandsreceivethread.cpp \
-    src/gestureHandler.cpp \
+    src/gesturehandler.cpp \
     src/glwidget.cpp \
     src/openigtlsendthread.cpp \
     src/qmlmainwindow.cpp \
@@ -20,7 +20,7 @@ SOURCES += src/main.cpp \
 HEADERS += configs/constants.h \
     src/camera.h \
     src/commandsreceivethread.h \
-    src/gestureHandler.h \
+    src/gesturehandler.h \
     src/glwidget.h \
     src/openigtlsendthread.h \
     src/qmlmainwindow.h \
@@ -39,6 +39,7 @@ deployment.path =
 QMAKE_BUNDLE_DATA += deployment
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
+VERSION = 1.0.0
 QMAKE_INFO_PLIST = Info.plist
 
 INCLUDEPATH += \

@@ -30,7 +30,7 @@ void QmlMainWindow::paint(){
     cameraButtonView->rootObject()->setProperty("width", getWidth() + 10);
     cameraButtonView->rootObject()->setProperty("height", getHeight() + 10);
 
-    QObject *cameraButtonObject = cameraButtonView->rootObject();
+    QObject * cameraButtonObject = cameraButtonView->rootObject();
 
     profileInfoView = new QQuickWidget(engine, this);
     profileInfoView->setSource(QUrl("qrc:/qml/ProfileInfo.qml"));

@@ -1,6 +1,6 @@
 //  Created by Jonatan Reyes.
 
-#include "gestureHandler.h"
+#include "gesturehandler.h"
 #include <QDebug>
 #include <QSwipeGesture>
 #include <QPinchGesture>

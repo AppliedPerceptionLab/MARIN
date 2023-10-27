@@ -28,13 +28,13 @@ Sender::Sender( QObject *parent, int w, int h, QString thisaddress, int frw, int
             // TODO?
             break;
         case VideoModes::I420:
-            I420StreamEncoder = new I420Encoder( "" );
+            I420StreamEncoder = new I420Encoder( (char*)"" );
             encoder = I420StreamEncoder;
             // TODO?
             break;
         case VideoModes::H264:
             //    h264StreamEncoder = new H264Encoder( OH264_CONFIG_FILE_PATH );
-            h264StreamEncoder = new H264Encoder( "" );
+            h264StreamEncoder = new H264Encoder( (char*)"" );
             h264StreamEncoder->SetSpeed( HIGH_COMPLEXITY );
             encoder = h264StreamEncoder;
             break;

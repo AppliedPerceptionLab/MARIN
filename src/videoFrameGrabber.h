@@ -19,7 +19,7 @@ private:
 public:
     explicit VideoFrameGrabber(QObject *parent = nullptr);
 
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
     void setVideoFinderSettings(QCameraViewfinderSettings *);
 
     // Called from QAbstractVideoSurface whenever a new frame is present

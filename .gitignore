@@ -34,6 +34,8 @@ Thumbs.db
 *.rc
 /.qmake.cache
 /.qmake.stash
+marin_qml_plugin_import.cpp
+MARIN.pro
 
 # qtcreator generated files
 *.pro.user*
@@ -70,7 +72,6 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-MARIN.pro
 
 # Xcode
 MARIN.xcodeproj

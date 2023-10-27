@@ -302,11 +302,11 @@ void GLWidget::initializeGL(){
     //define TransparencyPosition:
     bogus = f->glGetUniformLocation( shader_programme, "TransparencyPosition" );
 //    qInfo() << bogus4;
-    err = glGetError();
+    err = f->glGetError();
     if (err != 0) qWarning() << "glGetUniformLocation error" << err;
     if( bogus != -1 ){
         f->glUniform2f( bogus, TransparencyPosition[0], TransparencyPosition[1] );
-        if (debug){ err = glGetError(); if (err != 0) qInfo() << "glUniform2f error" << err; }
+        if (debug){ err = f->glGetError(); if (err != 0) qInfo() << "glUniform2f error" << err; }
     }else{
         qWarning("[GlWidget][Warning] TransparencyPosition couldn't be loaded.");
     }
@@ -418,11 +418,11 @@ void GLWidget::TrackingStatusChanged( bool status ){
     f->glUseProgram(shader_programme);
     //define TransparencyPosition:
     int bogus4 = f->glGetUniformLocation( shader_programme, "TrackerOK" );
-    err = glGetError();
+    err = f->glGetError();
     if (err != 0) qInfo() << "glGetUniformLocation error" << err;
     if( bogus4 != -1 ){
         f->glUniform1i( bogus4, trackerOK );
-        err = glGetError();
+        err = f->glGetError();
         if (err != 0) qInfo() << "glUniform1i error" << err;
     }else{
         qWarning("[GlWidget][Warning] TrackerOK couldn't be loaded.");
@@ -477,11 +477,11 @@ void GLWidget::moveCursor(int x, int y){
         f->glUseProgram( shader_programme );
         //define TransparencyPosition:
         int bogus4 = f->glGetUniformLocation( shader_programme, "TransparencyPosition" );
-        err = glGetError();
+        err = f->glGetError();
         if( err != 0 ) qInfo() << "glGetUniformLocation error" << err;
         if( bogus4 != -1 ){
             f->glUniform2fv( bogus4, 1, TransparencyPosition );
-            err = glGetError();
+            err = f->glGetError();
             if (err != 0) qInfo() << "glUniform2f error" << err;
         }else{
             qWarning("[GLWidget::moveCursor][Warning] TransparencyPosition couldn't be loaded.");
@@ -522,11 +522,11 @@ void GLWidget::setDisplayMode( int mode ){
     DisplayMode = mode;
     f->glUseProgram(shader_programme);
     int bogus = f->glGetUniformLocation( shader_programme, "DisplayMode" );
-    err = glGetError();
+    err = f->glGetError();
     if (err != 0) qInfo() << "glGetUniformLocation error" << err;
     if( bogus != -1 ){
         f->glUniform1i( bogus, DisplayMode );
-        err = glGetError();
+        err = f->glGetError();
         if (err != 0) qInfo() << "glUniform2i error" << err;
     }else{
         qWarning() << "[GlWidget][Warning] DisplayMode couldn't be loaded.";
@@ -540,11 +540,11 @@ void GLWidget::changeGaussian( float val ){
     GaussianFactor = val;
     f->glUseProgram(shader_programme);
     int bogus = f->glGetUniformLocation( shader_programme, "GaussianFactor" );
-    err = glGetError();
+    err = f->glGetError();
     if (err != 0) qInfo() << "glGetUniformLocation error" << err;
     if( bogus != -1 ){
         f->glUniform1f( bogus, GaussianFactor );
-        err = glGetError();
+        err = f->glGetError();
         if (err != 0) qInfo() << "glUniform1f error" << err;
     }else{
         qWarning() << "[GlWidget][Warning] GaussianFactor couldn't be loaded.";
@@ -556,11 +556,11 @@ void GLWidget::changeRadius( float inner, float outer ){
     TransparencyRadius[1] = outer;
     f->glUseProgram(shader_programme);
     int bogus = f->glGetUniformLocation( shader_programme, "TransparencyRadius" );
-    err = glGetError();
+    err = f->glGetError();
     if (err != 0) qInfo() << "glGetUniformLocation error" << err;
     if( bogus != -1 ){
         f->glUniform2f( bogus, TransparencyRadius[0], TransparencyRadius[1] );
-        err = glGetError();
+        err = f->glGetError();
         if (err != 0) qInfo() << "glUniform2f error" << err;
     }else{
         qWarning() << "[GlWidget][Warning] TransparencyRadius couldn't be loaded.";
