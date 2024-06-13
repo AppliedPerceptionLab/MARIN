@@ -13,6 +13,8 @@ SOURCES += src/main.cpp \
     src/qmlmainwindow.cpp \
     src/receiver.cpp \
     src/sender.cpp \
+    src/sendercommand.cpp \
+    src/sendervideo.cpp \
     src/threadshandler.cpp \
     src/videoFrameGrabber.cpp \
     src/videoreceivethread.cpp
@@ -26,6 +28,8 @@ HEADERS += configs/constants.h \
     src/qmlmainwindow.h \
     src/receiver.h \
     src/sender.h \
+    src/sendercommand.h \
+    src/sendervideo.h \
     src/threadshandler.h \
     src/videoFrameGrabber.h \
     src/videoreceivethread.h

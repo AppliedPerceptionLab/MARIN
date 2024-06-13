@@ -7,7 +7,8 @@
 #include <QList>
 #include <QQuickWidget>
 #include <QDesktopWidget>
-#include "sender.h"
+#include "sendervideo.h"
+#include "sendercommand.h"
 #include "receiver.h"
 #include "threadshandler.h"
 #include "qmlmainwindow.h"
@@ -130,17 +131,19 @@ int main(int argc, char *argv[]){
         }
     }
 
-    Sender * sender = new Sender( nullptr, camera_width, camera_height, thisaddress, full_res_width, full_res_height );
-    sender->setCamera( camera->getCamera() );
+    SenderVideo * vs = new SenderVideo( nullptr, thisaddress, PORT_SEND_VIDEO, camera_width, camera_height, full_res_width, full_res_height );
+    SenderCommand * cs = new SenderCommand( nullptr, thisaddress, PORT_SEND_COMMANDS );
+    vs->setCamera( camera->getCamera() );
 
     //Copy frames to buffer every time the QCamera has one available:
-    QObject::connect( grabber, SIGNAL( videoFrameProbed( const QVideoFrame &) ), sender, SLOT( copy_frame( const QVideoFrame &) ) );
+    QObject::connect( grabber, SIGNAL( videoFrameProbed( const QVideoFrame &) ), vs, SLOT( copy_frame( const QVideoFrame &) ) );
 
     //create threads handler:
     ThreadsHandler * th = new ThreadsHandler();
     th->setReceiver( receiver );
-    th->setSender( sender );
-    th->startSender();
+    th->setSenderVideo( vs );
+    th->setSenderCommand( cs );
+    th->startSenders();
     th->startReceiver();
 
     //connect signals and slots:
@@ -151,17 +154,19 @@ int main(int argc, char *argv[]){
     QObject::connect( &window,  SIGNAL( toggleReceiverSignal( bool ) ),                     th,         SLOT( toggleReceiver( bool ) ) );
     QObject::connect( th,       SIGNAL( serverFound() ),                                    &window,    SLOT( serverFound() ) );
     QObject::connect( receiver, SIGNAL( serverFound() ),                                    &window,    SLOT( serverFound() ) );
-    QObject::connect( &window,  SIGNAL( anatomyToggledSignal( int, bool ) ),                th,         SLOT( anatomyToggled( int, bool ) ) );
-    QObject::connect( &window,  SIGNAL( setQuadViewSignal( bool ) ),                        th,         SLOT( quadviewToggled( bool ) ) );
-    QObject::connect( &window,  SIGNAL( navigateSliceSignal( SliceView, double, double ) ), th,         SLOT( navigateSlice( SliceView, double, double ) ) );
-    QObject::connect( &window,  SIGNAL( reregisterARSignal( double, double, double ) ),     th,         SLOT( reregisterAR( double, double, double ) ) );
-    QObject::connect( &window,  SIGNAL( rotateViewSignal( double, double, double ) ),       th,         SLOT( rotateView( double, double, double ) ) );
-    QObject::connect( &window,  SIGNAL( freezeFrameSignal( bool ) ),                        th,         SLOT( freezeFrame( bool ) ) );
-    QObject::connect( &window,  SIGNAL( resetReregistrationSignal() ),                      th,         SLOT( resetReregistration() ) );
     QObject::connect( &window,  SIGNAL( exitSignal() ),                                     th,         SLOT( quit() ) );
     QObject::connect( th,       SIGNAL( readyToExit() ),                                    &app,       SLOT( quit() ) );
     QObject::connect( &window,  SIGNAL( freezeCamera(bool) ),                               camera,     SLOT( freezeCamera(bool) ) );
-    QObject::connect( &window,  SIGNAL( sendPointSetSignal( std::vector<std::pair<int,int>> ) ), th,         SLOT( sendPointSet( std::vector<std::pair<int,int>> ) ) );
+    
+    // Commands:
+    QObject::connect( &window,  SIGNAL( anatomyToggledSignal( int, bool ) ),                cs,         SLOT( toggleAnatomy( int, bool ) ) );
+    QObject::connect( &window,  SIGNAL( setQuadViewSignal( bool ) ),                        cs,         SLOT( toggleQuadView( bool ) ) );
+    QObject::connect( &window,  SIGNAL( navigateSliceSignal( SliceView, double, double ) ), cs,         SLOT( navigateSlice( SliceView, double, double ) ) );
+    QObject::connect( &window,  SIGNAL( reregisterARSignal( double, double, double ) ),     cs,         SLOT( reregisterAR( double, double, double ) ) );
+    QObject::connect( &window,  SIGNAL( rotateViewSignal( double, double, double ) ),       cs,         SLOT( rotateView( double, double, double ) ) );
+    QObject::connect( &window,  SIGNAL( freezeFrameSignal( bool ) ),                        cs,         SLOT( freezeFrame( bool ) ) );
+    QObject::connect( &window,  SIGNAL( resetReregistrationSignal() ),                      cs,         SLOT( resetReregistration() ) );
+    QObject::connect( &window,  SIGNAL( sendPointSetSignal( std::vector<std::pair<int,int>> ) ), cs,    SLOT( sendPointSet( std::vector<std::pair<int,int>> ) ) );
 
     //Give threadhandler context access to QML:
     //TODO: This should be fixed

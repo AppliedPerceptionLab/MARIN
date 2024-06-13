@@ -11,7 +11,7 @@ static void * ThreadFunctionUnWrap( void * ptr ){
     //TODO: Eeventually the device name should be fetched from the server. Ideally MARIN should broadcast its address, then the server would respond with its name or something similar.
     const char * videoDeviceName = SERVER_NAME;
     while( parentObj->keepReceiving() ){
-        parentObj->getWrapper()->UnWrapPacketWithTypeAndName(deviceType, videoDeviceName);
+        parentObj->getWrapper()->UnWrapPacketWithTypeAndName( deviceType, videoDeviceName );
     }
     return nullptr;
 }

@@ -49,10 +49,11 @@ enum VideoModes { VIDEOMODE_UNDEFINED, H264, I420, Image_BGRA, Image_RGB, Image_
 #define VIDEO_MODE VideoModes::Image_RGB
 enum TransmissionProtocol { PROTOCOL_UNDEFINED, TCP, UDP };
 #define IMAGE_TRANSMISSION_PROTOCOL TransmissionProtocol::TCP
+#define COMMANDS_TRANSMISSION_PROTOCOL TransmissionProtocol::TCP
 //TODO: Add protocol switch for other streams
 
-#define VIDEO_SENDER_PORT 18951                                 //port to send video to
-#define COMMANDS_SENDER_PORT 18947                              //UDP port to send commands to
+#define PORT_SEND_VIDEO 18951                                 // port to send video to
+#define PORT_SEND_COMMANDS 18947                              // port to send commands to
 #define VIDEO_RECEIVER_PORT 18946                               //UDP port to receive video from
 #define COMMANDS_RECEIVER_PORT 18949                            //TCP port to receive commands/status updates from
 
