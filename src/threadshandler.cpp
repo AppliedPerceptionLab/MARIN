@@ -4,7 +4,8 @@
 
 ThreadsHandler::ThreadsHandler( QObject *parent ) : QObject( parent ){
     //create send thread:
-    st = new OpenIGTLsendThread();
+    videoSendThread = new OpenIGTLsendThread();
+    commandsSendThread = new OpenIGTLsendThread();
     vrt = new VideoReceiveThread;
     crt = new CommandsReceiveThread;
 
@@ -16,8 +17,10 @@ ThreadsHandler::ThreadsHandler( QObject *parent ) : QObject( parent ){
 ThreadsHandler::~ThreadsHandler(){
     delete vrt;
     delete crt;
-    delete st;
-    delete s;
+    delete videoSendThread;
+    delete commandsSendThread;
+    delete vs;
+    delete cs;
     delete r;
     delete udpSocket;
 }
@@ -28,13 +31,20 @@ void ThreadsHandler::setReceiver( Receiver * receiver ){
     r = receiver;
 }
 
-void ThreadsHandler::setSender( Sender * ss ){
-    st->setSender( ss );
-    s = ss;
+void ThreadsHandler::setSenderVideo( Sender * ss ){
+    videoSendThread->setSender( ss );
+    cs = ss;
 }
 
-void ThreadsHandler::startSender(){
-    st->start();
+void ThreadsHandler::setSenderCommand( Sender * ss ){
+    commandsSendThread->setSender( ss );
+    vs = ss;
+}
+
+
+void ThreadsHandler::startSenders(){
+    videoSendThread->start();
+    commandsSendThread->start();
 }
 
 void ThreadsHandler::startReceiver(){
@@ -44,7 +54,7 @@ void ThreadsHandler::startReceiver(){
 
 //TODO: should have some sort of pause variable instead. This should all be reworked.
 void ThreadsHandler::toggleSender( bool b ){
-    s->setSendingVideo( b );
+    vs->setSending( b );
 }
 
 void ThreadsHandler::toggleReceiver( bool b ){
@@ -59,18 +69,24 @@ void ThreadsHandler::toggleReceiver( bool b ){
 
 void ThreadsHandler::quit(){
     qInfo() << "[ThreadsHandler] Requesting both threads to stop.";
-    st->end();
+    videoSendThread->end();
+    commandsSendThread->end();
     vrt->end();
     crt->end();
     //wait for threads to finish:
-    qInfo() << "[ThreadsHandler] Waiting for both threads to stop.";
-    bool gracefulS = st->wait( 5000 );
+    qInfo() << "[ThreadsHandler] Waiting for all threads to stop.";
+    bool gracefulSVideo = videoSendThread->wait( 5000 );
+    bool gracefulSCommands = commandsSendThread->wait( 5000 );
     bool gracefulRVideo = vrt->wait( 5000 );
     bool gracefulRCommands = crt->wait( 5000 );
     //if the threads aren't done after 5 secs, we just kill them:
-    if( !gracefulS ){
-        qInfo() << "[ThreadsHandler] Send thread wouldn't finish. Killing it.";
-        st->terminate();
+    if( !gracefulSVideo ){
+        qInfo() << "[ThreadsHandler] Video Send thread wouldn't finish. Killing it.";
+        videoSendThread->terminate();
+    }
+    if( !gracefulSCommands ){
+        qInfo() << "[ThreadsHandler] Video Send thread wouldn't finish. Killing it.";
+        commandsSendThread->terminate();
     }
     if( !gracefulRVideo ){
         qInfo() << "[ThreadsHandler] Receive video thread wouldn't finish. Killing it.";
@@ -91,11 +107,11 @@ void ThreadsHandler::receivedBroadcast(){
     QByteArray datagram;
     QHostAddress * address = nullptr;
     quint16 * port = nullptr;
-    while (udpSocket->hasPendingDatagrams()) {
-        datagram.resize(int(udpSocket->pendingDatagramSize()));
+    while( udpSocket->hasPendingDatagrams() ) {
+        datagram.resize( int( udpSocket->pendingDatagramSize() ) );
         //TODO: looks like address and port are both 0, so the address needs to be included in the data
-        udpSocket->readDatagram(datagram.data(), datagram.size(), address, port);
-        QString str = QString(datagram.data());
+        udpSocket->readDatagram( datagram.data(), datagram.size(), address, port );
+        QString str = QString( datagram.data() );
         if( str == lastestBroadcast ){
             continue;
         }
@@ -106,7 +122,7 @@ void ThreadsHandler::receivedBroadcast(){
         QRegularExpressionMatch matchPort = qrePort.match( toks.at(2) );
         if ( matchAddress.hasMatch() ){
             qInfo() << "[Threadhandler] Server address is : " << toks.at(1);
-            s->change_host( toks.at(1).toStdString() );
+            vs->change_host( toks.at(1).toStdString() );
             r->change_host( toks.at(1).toStdString() );
             lastestBroadcast = str;
             emit serverFound();

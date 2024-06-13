@@ -14,14 +14,6 @@ public:
     void run() Q_DECL_OVERRIDE;
     void stop();
     void restart();
-    void anatomyToggled( int i, bool b ){ s->toggleAnatomy( i, b ); }
-    void quadviewToggled( bool b ){ s->toggleQuadView( b ); }
-    void navigateSlice( SliceView sv, double x, double y ){ s->navigateSlice( sv, x, y ); }
-    void reregisterAR( double dx, double dy, double a ){ s->reregisterAR( dx, dy, a ); }
-    void rotateView( double dx, double dy, double z ){ s->rotateView( dx, dy, z ); }
-    void freezeFrame( bool b ){ s->freezeFrame( b ); }
-    void resetReregistration( ){ s->resetReregistration( ); }
-    void sendPointSet( std::vector<std::pair<int,int>> points ){ s->sendPointSet( points ); }
 
 private:
     Sender * s;

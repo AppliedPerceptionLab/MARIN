@@ -20,8 +20,8 @@ void OpenIGTLsendThread::run(){
         //we were disconnected from the server for some reason
         if ( !sent ){
             //if it didn't work, we wait a little bit and we'll try again later
-            qInfo() << "[OpenIGTLSendThread] Will wait a second and try receiving again.";
-            usleep(1000000);
+            qInfo() << "[OpenIGTLSendThread] Will wait a second and try sending again.";
+            usleep( 1000000 );
         }
     }
 }

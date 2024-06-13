@@ -17,17 +17,18 @@ class ThreadsHandler : public QObject
 public:
     explicit ThreadsHandler( QObject *parent = nullptr );
     ~ThreadsHandler();
-    void setSender( Sender * s );
+    void setSenderVideo( Sender * s );
+    void setSenderCommand( Sender * s );
     void setReceiver( Receiver * r );
-    void startSender();
+    void startSenders();
     void startReceiver();
     Q_INVOKABLE int getReceivingPortVideo() const { return r->getPortVideo(); }
     Q_INVOKABLE int getReceivingPortCommands() const { return r->getPortCommands(); }
-    Q_INVOKABLE int getSendingPortVideo() const { return s->getPortVideo(); }
-    Q_INVOKABLE int getSendingPortCommands() const { return s->getPortCommands(); }
+    Q_INVOKABLE int getSendingPortVideo() const { return vs->getPort(); }
+    Q_INVOKABLE int getSendingPortCommands() const { return cs->getPort(); }
     Q_INVOKABLE QString getClientAddress() const { return r->getClientAddress(); }
-    Q_INVOKABLE QString getServerAddress() const { return s->getServerAddress(); }
-    Q_INVOKABLE bool getSendingVideo() const { return s->sendingVideo(); }
+    Q_INVOKABLE QString getServerAddress() const { return vs->getServerAddress(); }
+    Q_INVOKABLE bool getSendingVideo() const { return vs->sending(); }
 
 signals:
     void serverFound();
@@ -37,23 +38,17 @@ public slots:
     void toggleSender( bool b );
     void toggleReceiver( bool b );
 
-    void quit();
-    void anatomyToggled( int i , bool b ){ st->anatomyToggled( i, b ); }
-    void quadviewToggled( bool b ){ st->quadviewToggled( b ); }
-    void navigateSlice( SliceView sv, double x, double y ){ st->navigateSlice( sv, x, y ); }
-    void reregisterAR( double dx, double dy, double a ){ st->reregisterAR( dx, dy, a ); }
-    void rotateView( double dx, double dy, double z ){ st->rotateView( dx, dy, z ); }
-    void freezeFrame( bool b ){ st->freezeFrame( b ); }
-    void resetReregistration( ){ st->resetReregistration( ); }
     void receivedBroadcast();
-    void sendPointSet( std::vector<std::pair<int,int>> points ){ st->sendPointSet( points ); }
+    void quit();
     
 private:
-    Sender * s;
+    Sender * vs;
+    Sender * cs;
     Receiver * r;
     VideoReceiveThread * vrt;
     CommandsReceiveThread * crt;
-    OpenIGTLsendThread * st;
+    OpenIGTLsendThread * videoSendThread;
+    OpenIGTLsendThread * commandsSendThread;
     QUdpSocket * udpSocket = nullptr;
     QString lastestBroadcast = QString("");
 };

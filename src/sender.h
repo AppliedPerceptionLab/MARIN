@@ -53,37 +53,20 @@
 
 #define EPSILON 0.00001
 
-//TODO: Use this instead of current buffers
-typedef struct frame{
-    int frame_number;
-    uchar * data;
-    size_t size;
-}frame;
-
 using namespace igtl;
 
 class Sender : public QObject{
     Q_OBJECT
 public:
-    Sender( QObject * parent = nullptr, int w = 0 , int h = 0, QString add = "", int frw = 0, int frh = 0 );
+    Sender( QObject * parent = nullptr, QString add = "", int port = 99999 );
     ~Sender();
     
     QObject * parent;
-    bool send();
-    bool connectVideo();
-    bool connectCommands();
+    virtual bool send() = 0;
+    virtual bool connect() = 0;
+    
     void closeSocket();
-    void toggleAnatomy( int i, bool b );
-    void toggleQuadView( bool b);
-    void navigateSlice( SliceView slice, double x, double y );
-    void rotateView( double dx, double dy, double z );
-    void reregisterAR( double dx, double dy, double a );
-    void freezeFrame( bool value );
-    void resetReregistration();
-    void sendPointSet( std::vector<std::pair<int,int>> points );
-    void arbitraryCommand( std::string str );
-    int getPortVideo() { return port_video; }
-    int getPortCommands() { return port_commands; }
+    int getPort() { return port; }
     QString getServerAddress() { return hostname; }
     void setServerAddress( const QString address ) {
         if( address == hostname ){
@@ -92,54 +75,45 @@ public:
         hostname = address;
         emit serverAddressChanged();
     }
-    void setCamera( QCamera * camera ){
-        this->camera = camera;
-    }
 
-    bool sendingVideo(){ return m_sendingVideo; }
-    void setSendingVideo( const bool b ){
-        if( b == m_sendingVideo ){
+    bool sending(){ return m_sending; }
+    void setSending( const bool b ){
+        if( b == m_sending ){
             return;
         }
-        m_sendingVideo = b;
-        emit sendingVideoStatusChanged();
+        m_sending = b;
+        emit sendingStatusChanged();
     }
 
 signals:
-    void sendingVideoStatusChanged();
+    void sendingStatusChanged();
     void serverAddressChanged();
 
 public slots:
     void change_host( std::string str );
     void change_port( int p );
-    void copy_frame( QVideoFrame f );
 
+protected:
+    
+    //socket to send on:
+    igtl::ClientSocket::Pointer socket = igtl::ClientSocket::New();
+    igtl::ServerSocket::Pointer tcpServerSocket = igtl::ServerSocket::New();
+    igtl::UDPServerSocket::Pointer udpServerSocket = igtl::UDPServerSocket::New();
+    igtl::MessageRTPWrapper::Pointer rtpWrapper = igtl::MessageRTPWrapper::New();
+    
+    igtl::MultiThreader::Pointer threader = igtl::MultiThreader::New();
+    igtl::MutexLock::Pointer glock = igtl::MutexLock::New();
+    
+    igtl::TimeStamp::Pointer ServerTimer  = igtl::TimeStamp::New();
+        
+    bool init_done = false;
+    bool connected = false;
+    int msgID = 0;
+    
 private:
-    QCamera * camera = nullptr;
-    bool setEncoder( int w, int h );
     
-    QVideoFrame::PixelFormat format = QVideoFrame::Format_Invalid;
-
-    int argb_buffer_size = -99;
-    uchar * send_buffer;
-    uchar * converted;
-    uchar * full_res_frame;
-    
-    int width = -99;
-    int height = -99;
-    int full_res_width = -99;
-    int full_res_height = -99;
-    int input_image_size = -99;
-    int bytes_per_line = 0;
-    int copy_number = 0;
-    int command_number = 0;
-    bool newCommand = false;
-    std::queue<Command> commands;
-    bool m_sendingVideo;
-    bool m_send_full_res_picture = false;
-    
-    ushort port_video = VIDEO_SENDER_PORT;
-    ushort port_commands = COMMANDS_SENDER_PORT;
+    bool m_sending = false;
+    ushort port = 99999;
 
     int version = 2;
     QString thisaddress = QString("127.0.0.1");
@@ -147,40 +121,5 @@ private:
 
     QMutex mutex;
     QReadWriteLock rwlock;
-    bool reading_1 = false;
-    bool slot1_being_written = false;
-    bool slot2_being_written = false;
-    bool slot1_being_read = false;
-    bool slot2_being_read = false;
-    bool newest_is_1 = false;
-    frame slot1;
-    frame slot2;
-    bool init_done = false;
-    bool connected_video = false;
-    bool connected_commands = false;
-    int msgID = 0;
 
-    H264Encoder::Pointer h264StreamEncoder;
-    I420Encoder::Pointer I420StreamEncoder;
-    GenericEncoder::Pointer encoder;
-    SourcePicture* srcPic = new SourcePicture();
-    
-    igtl::CommandMessage::Pointer commandMsg;
-    igtl::VideoMessage::Pointer videoMessage;
-    igtl::ImageMessage::Pointer imageMessage;
-    
-    //socket to send commands on:
-    igtl::ClientSocket::Pointer socket = igtl::ClientSocket::New();
-    igtl::UDPServerSocket::Pointer udpCommandsServerSocket = igtl::UDPServerSocket::New();
-    //socket to send video on:
-    igtl::UDPServerSocket::Pointer udpVideoServerSocket = igtl::UDPServerSocket::New();
-    igtl::MessageRTPWrapper::Pointer rtpWrapper = igtl::MessageRTPWrapper::New();
-    //socket to send image on:
-    igtl::ServerSocket::Pointer tcpImageServerSocket = igtl::ServerSocket::New();
-    igtl::ClientSocket::Pointer imageSocket = igtl::ClientSocket::New();
-    
-    igtl::MultiThreader::Pointer threader = igtl::MultiThreader::New();
-    igtl::MutexLock::Pointer glock = igtl::MutexLock::New();
-    
-    igtl::TimeStamp::Pointer ServerTimer  = igtl::TimeStamp::New();
 };
