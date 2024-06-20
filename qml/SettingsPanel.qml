@@ -165,7 +165,7 @@ Item {
             y: 163
             width: 70
             height: 70
-            checked: th.getSendingVideo()
+            checked: th.getSending()
             objectName: "senderToggleButton"
             style: SwitchStyle {
                 groove: Rectangle {

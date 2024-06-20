@@ -33,12 +33,12 @@ void ThreadsHandler::setReceiver( Receiver * receiver ){
 
 void ThreadsHandler::setSenderVideo( Sender * ss ){
     videoSendThread->setSender( ss );
-    cs = ss;
+    vs = ss;
 }
 
 void ThreadsHandler::setSenderCommand( Sender * ss ){
     commandsSendThread->setSender( ss );
-    vs = ss;
+    cs = ss;
 }
 
 
