@@ -1,22 +1,25 @@
 #include <QQuickWidget>
 #include <QQmlEngine>
+#include <QQmlContext>
 #include "qmlmainwindow.h"
 #include "glwidget.h"
+#include "threadshandler.h"
 
 QmlMainWindow::QmlMainWindow(){
     engine = new QQmlEngine(this);
-    paint();
 }
 
 QmlMainWindow::QmlMainWindow( int width, int height ){
+    qvf = new QVideoFrame();
     point_set = std::vector<std::pair<int, int>>();
     screen_width = width;
     screen_height = height;
     setFixedSize( screen_width, screen_height );
     GL_widget = new GLWidget( this, screen_width, screen_height );
+    setCentralWidget( GL_widget );
     engine = new QQmlEngine(this);
-    paint();
 }
+
 
 void QmlMainWindow::paint(){
     cameraButtonView = new QQuickWidget(engine, this);
@@ -29,8 +32,6 @@ void QmlMainWindow::paint(){
     cameraButtonView->rootObject()->setProperty("y", getHeight()/2-70);
     cameraButtonView->rootObject()->setProperty("width", getWidth() + 10);
     cameraButtonView->rootObject()->setProperty("height", getHeight() + 10);
-
-    QObject * cameraButtonObject = cameraButtonView->rootObject();
 
     profileInfoView = new QQuickWidget(engine, this);
     profileInfoView->setSource(QUrl("qrc:/qml/ProfileInfo.qml"));
@@ -74,6 +75,9 @@ void QmlMainWindow::paint(){
                      this, SLOT(disableMode(int)));
 
     settingsPanelView = new QQuickWidget(engine, this);
+    if (m_th) {
+        settingsPanelView->rootContext()->setContextProperty("th", m_th);
+    }
     settingsPanelView->setSource(QUrl("qrc:/qml/SettingsPanel.qml"));
     settingsPanelView->setProperty("visible", false);
     settingsPanelView->setAttribute(Qt::WA_TranslucentBackground, true);
@@ -111,6 +115,10 @@ void QmlMainWindow::paint(){
 
    QObject::connect(ServerDialogObject, SIGNAL(closeMessage(int)),
                     this, SLOT(executeAction(int)));
+
+   profileInfoView->show();
+   toolBarView->show();
+   serverConnectionView->show();
 }
 
 void QmlMainWindow::executeAction(const int &action){
@@ -251,7 +259,10 @@ void QmlMainWindow::executeShowServerConnectionError(){
 
 void QmlMainWindow::executeHideServerConnectionError(){
     qDebug() <<  "Debug: executeShowServerConnectionError ";
-    serverConnectionView->setProperty("visible", false);
+    // TODO: race condition here crashes the app if the server connection gets established before the layout is created (serverConnectionView is null probably)
+    // Will just sleep for now, but this isn't a solution
+    usleep( 1000 );
+    serverConnectionView->setProperty( "visible", false );
 }
 
 void QmlMainWindow::enableFilter(const int &filter){
@@ -466,7 +477,7 @@ void QmlMainWindow::setReceiver( Receiver * r ){
 void QmlMainWindow::setCameraImageResolution( int w, int h ){
     GL_widget->setCameraImageResolution( w, h );
 }
-void QmlMainWindow::setPixelFormat( QVideoFrame::PixelFormat format ){
+void QmlMainWindow::setPixelFormat( QVideoFrameFormat::PixelFormat format ){
     GL_widget->setPixelFormat( format );
 }
 
@@ -502,8 +513,8 @@ QmlMainWindow::~QmlMainWindow(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////// MOUSE EVENTS ////////////////////////////////////////////////
 void QmlMainWindow::mousePressEvent(QMouseEvent * event){
-    int x = event->x();
-    int y = event->y();
+    int x = event->position().x();
+    int y = event->position().y();
     if( move_view_on ){
         GL_widget->moveCursor( x, y );
     }
@@ -512,9 +523,19 @@ void QmlMainWindow::mousePressEvent(QMouseEvent * event){
     }
 }
 void QmlMainWindow::mouseMoveEvent(QMouseEvent * event){
-    int x = event->x();
-    int y = event->y();
+    int x = event->position().x();
+    int y = event->position().y();
     if( move_view_on ){
         GL_widget->moveCursor( x, y );
+    }
+}
+
+void QmlMainWindow::showEvent(QShowEvent *event) {
+    QMainWindow::showEvent(event);
+    static bool initialized = false;
+    if (!initialized) {
+        GL_widget->show();
+        paint();
+        initialized = true;
     }
 }

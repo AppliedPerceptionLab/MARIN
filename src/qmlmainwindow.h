@@ -3,11 +3,15 @@
 
 #include <QObject>
 #include <QMainWindow>
+#include <QVideoFrame>
+#include <QVideoFrameFormat>
+#include <QShowEvent>
 #include "receiver.h"
 
 class GLWidget;
 class QQuickWidget;
 class QQmlEngine;
+class ThreadsHandler;
 
 class QmlMainWindow : public QMainWindow
 {
@@ -67,7 +71,8 @@ public:
     
     void setReceiver( Receiver * r );
     void setCameraImageResolution( int w, int h );
-    void setPixelFormat( QVideoFrame::PixelFormat format );
+    void setPixelFormat( QVideoFrameFormat::PixelFormat format );
+    void setThreadsHandler( ThreadsHandler * th ) { m_th = th; }
 
     QQmlEngine * getEngine() { return engine; }
     
@@ -118,23 +123,25 @@ private:
     
     bool server_found = false;
     
-    QVideoFrame * qvf = new QVideoFrame();
+    QVideoFrame * qvf;
     
     QQmlEngine * engine;
 
-    QQuickWidget * toolBarView;
-    QQuickWidget * profileView;
-    QQuickWidget * profileInfoView;
-    QQuickWidget * settingsPanelView;
-    QQuickWidget * filtersView;
-    QQuickWidget * reregisterView;
-    QQuickWidget * serverConnectionView;
-    QQuickWidget * mainWindowWrapper;
-    QQuickWidget * cameraButtonView;
+    QQuickWidget * toolBarView = nullptr;
+    QQuickWidget * profileView = nullptr;
+    QQuickWidget * profileInfoView = nullptr;
+    QQuickWidget * settingsPanelView = nullptr;
+    QQuickWidget * filtersView = nullptr;
+    QQuickWidget * reregisterView = nullptr;
+    QQuickWidget * serverConnectionView = nullptr;
+    QQuickWidget * mainWindowWrapper = nullptr;
+    QQuickWidget * cameraButtonView = nullptr;
+    ThreadsHandler * m_th = nullptr;
     
 protected:
     void mousePressEvent( QMouseEvent * event );
     void mouseMoveEvent( QMouseEvent * event );
+    void showEvent( QShowEvent * event ) override;
     
     int getWidth() { return screen_width; }
     int getHeight() { return screen_height; }

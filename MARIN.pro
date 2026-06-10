@@ -1,8 +1,13 @@
 TEMPLATE = app
 TARGET = MARIN
 
-CONFIG += c++11
-QT += qml quick quickcontrols2 multimedia core multimediawidgets quickwidgets
+CONFIG += c++17
+QT += core gui widgets qml quick quickwidgets multimedia multimediawidgets opengl openglwidgets
+
+ios {
+    CONFIG += add_ios_ffmpeg_libraries
+    QMAKE_ASSET_CATALOGS += ios/Assets.xcassets
+}
 
 SOURCES += src/main.cpp \
     src/camera.cpp \
@@ -43,7 +48,7 @@ deployment.path =
 QMAKE_BUNDLE_DATA += deployment
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
-VERSION = 1.0.0
+VERSION = 2.0.0
 QMAKE_INFO_PLIST = Info.plist
 
 INCLUDEPATH += \

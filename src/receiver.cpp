@@ -150,7 +150,7 @@ bool Receiver::receive(){
         headerMsg->Unpack();
         if( headerMsg->GetHeaderVersion() != version ){
             connected_video = false;
-            qCritical() << "[Receiver] Version of the client and server don't match. ( I received" << headerMsg->GetHeaderVersion() << "but I expected" << version << ")";
+            qCritical() << "[Receiver] Version of the client and server don't match. (received" << headerMsg->GetHeaderVersion() << "but expected" << version << ")";
             return false;
         }
         

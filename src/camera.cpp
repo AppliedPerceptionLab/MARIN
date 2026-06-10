@@ -1,5 +1,8 @@
 #include "camera.h"
 
+#include <QCamera>
+#include <QDebug>
+
 Camera::Camera(){
 }
 
@@ -9,15 +12,15 @@ QCamera * Camera::getCamera(){
 
 void Camera::setCamera(QCamera* cam){
     camera = cam;
-    FocusObj = cam->focus();
 }
 
 void Camera::freezeCamera(bool freeze){
     qDebug() << "freezeCamera: " << freeze;
     if(freeze){
-        camera->searchAndLock();
+        camera->setFocusMode(QCamera::FocusModeManual);
+        //TODO setFocusDistance( dst );
     } else{
-        camera->unlock();
+        camera->setFocusMode(QCamera::FocusModeAutoNear);
     }
 }
 

@@ -1,40 +1,33 @@
 #ifndef POORMANSPROBE_HPP
 #define POORMANSPROBE_HPP
 
-#include <QAbstractVideoSurface>
-#include <QList>
-#include <QCameraViewfinder>
+#include <QObject>
+#include <QVideoFrame>
 
 class QCamera;
-class QCameraViewfinder;
-class QCameraViewfinderSettings;
+class QVideoSink;
+class QMediaCaptureSession;
 
-class VideoFrameGrabber : public QAbstractVideoSurface
+class VideoFrameGrabber : public QObject
 {
     Q_OBJECT
 
 private:
     QCamera * source;
-    QCameraViewfinderSettings * m_videoFinderSettings;
+    QVideoSink * m_videoSink;
+    QMediaCaptureSession * m_captureSession;
+
 public:
     explicit VideoFrameGrabber(QObject *parent = nullptr);
-
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
-    void setVideoFinderSettings(QCameraViewfinderSettings *);
-
-    // Called from QAbstractVideoSurface whenever a new frame is present
-    bool present(const QVideoFrame &frame) Q_DECL_OVERRIDE;
+    ~VideoFrameGrabber() override;
 
     bool setSource(QCamera *source);
-
     bool isActive() const;
-
 
 signals:
     // Users of this class will get frames via this signal
     void videoFrameProbed(const QVideoFrame &videoFrame);
     void flush();
-
 };
 
 #endif // POORMANSPROBE_HPP

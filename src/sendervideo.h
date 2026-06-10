@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include <QObject>
-#include <QVideoProbe>
+
 #include <QCamera>
 #include <QThread>
 #include <QMutex>
@@ -68,7 +68,6 @@ public:
     ~SenderVideo();
     
     bool send() override;
-    bool connect() override;
 
     void setCamera( QCamera * camera ){
         this->camera = camera;
@@ -80,22 +79,23 @@ public slots:
 private:
     QCamera * camera = nullptr;
     bool setEncoder( int w, int h );
+    bool convertToI420();
+    bool convertToRGB();
+    bool convertToABGR();
+    void sendCurrentImageMessage();
+    void sendCurrentVideoMessage();
     
-    QVideoFrame::PixelFormat format = QVideoFrame::Format_Invalid;
+    QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_Invalid;
 
-    int argb_buffer_size = -99;
+    int buffer_size = -99;
     uchar * send_buffer;
     uchar * converted;
-    uchar * full_res_frame;
     
     int width = -99;
     int height = -99;
-    int full_res_width = -99;
-    int full_res_height = -99;
     int input_image_size = -99;
     int bytes_per_line = 0;
     int copy_number = 0;
-    bool m_send_full_res_picture = false;
 
     bool reading_1 = false;
     bool slot1_being_written = false;
@@ -105,11 +105,14 @@ private:
     bool newest_is_1 = false;
     frame slot1;
     frame slot2;
+    //TOOD
+    //SourcePicture slot1;
+    //SourcePicture slot2;
 
     H264Encoder::Pointer h264StreamEncoder;
     I420Encoder::Pointer I420StreamEncoder;
     GenericEncoder::Pointer encoder;
-    SourcePicture* srcPic = new SourcePicture();
+    SourcePicture * srcPic = new SourcePicture();
     
     igtl::VideoMessage::Pointer videoMessage;
     igtl::ImageMessage::Pointer imageMessage;

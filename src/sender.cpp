@@ -14,10 +14,9 @@ Sender::Sender( QObject *parent, QString thisaddress, int port ) : QObject( pare
     
     ServerTimer = igtl::TimeStamp::New();
     
-    //TODO: Should eventually give user control over this value.
     int netWorkBandWidthInBPS = TARGET_BIT_RATE; //networkBandwidth is in kbps
     int time = floor( 8 * RTP_PAYLOAD_LENGTH * 1e9 / netWorkBandWidthInBPS + 1.0 ); // the needed time in nanosecond to send a RTP payload.
-    rtpWrapper->packetIntervalTime = time;
+    rtpWrapper->packetIntervalTime = time / 10; //Use a factor 10 for now, but could tweak this eventually, or add it to config for user to choose
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,4 +47,49 @@ void Sender::change_port( int p ){
     port = p;
     closeSocket();
     connected = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////   CONNECT   ///////////////////////////////////////////
+bool Sender::connect( std::string connection_description ){
+    if( !connected ){
+        if( protocol == TransmissionProtocol::UDP ){
+            int s = udpServerSocket->CreateUDPServer();
+            if ( s < 0 ){
+                std::cerr << "[Sender] Could not create a server socket (UDP) for " << connection_description << std::endl;
+                connected = false;
+            }else{
+                int clientID = udpServerSocket->AddClient( getServerAddress().toStdString().c_str(), getPort(), 0 );
+                std::cout << "[Sender] Added client: " << clientID << std::endl;
+                connected = clientID >= 0;
+                std::cout << "[Sender] Created a server socket (UDP) for " << connection_description << std::endl;
+            }
+        }else if( protocol == TransmissionProtocol::TCP ){
+            // Create TCP socket if not already:
+            if( !tcpServerSocket->GetConnected() ){
+                int st = tcpServerSocket->CreateServer( getPort() );
+                if( st < 0 ){
+                    std::cerr << "[Sender] Could not create a server socket (TCP) for " << connection_description << std::endl;
+                    connected = false;
+                    return false;
+                }else{
+                    std::cout << "[Sender] Created a server socket (TCP) for " << connection_description << std::endl;
+                }
+            }
+            // Connect to the server:
+            socket = tcpServerSocket->WaitForConnection( 3000 );
+            if( socket == nullptr ){
+                connected = false;
+                std::cout << "[Sender] Timed out trying to connect to TCP for " << connection_description << std::endl;
+            }else{
+                std::cout << "[Sender] TCP connection established for " << connection_description << std::endl;
+                connected = true;
+            }
+        }else{
+            std::cerr << "[Sender] INVALID PROTOCOL" << std::endl;
+        }
+    }else{
+        qWarning() << "[Sender] Already connected for " << connection_description << ". Nothing to do.";
+    }
+    return connected;
 }

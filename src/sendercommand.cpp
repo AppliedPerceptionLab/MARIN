@@ -5,8 +5,10 @@
 SenderCommand::SenderCommand( QObject *parent, QString thisaddress, int port ) : Sender( parent, thisaddress, port ) {
 
     setSending( true );
+    
+    protocol = COMMANDS_TRANSMISSION_PROTOCOL;
 
-    switch( COMMANDS_TRANSMISSION_PROTOCOL ){
+    switch( protocol ){
         case TransmissionProtocol::TCP:
             break;
         case TransmissionProtocol::UDP:
@@ -37,7 +39,8 @@ bool SenderCommand::send(){
     
     //try to connect if not already:
     if ( !connected ){
-        return connect();
+        std::cout << "[SenderCommand] Trying to connect..." << std::endl;
+        return connect( "commands" );
     }
     if( !connected || !init_done ){
         return false;
@@ -116,51 +119,6 @@ bool SenderCommand::send(){
 
     }
     return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////   CONNECT   ///////////////////////////////////////////
-bool SenderCommand::connect(){
-    std::cout << "[SenderCommand] Will try to connect to send commands." << std::endl;
-    if( !connected ){
-        if( COMMANDS_TRANSMISSION_PROTOCOL == TransmissionProtocol::UDP ){
-            int s = udpServerSocket->CreateUDPServer();
-            if ( s < 0 ){
-                std::cerr << "[SenderCommand] Could not create a server socket for video (UDP)." << std::endl;
-                connected = false;
-            }else{
-                int clientID = udpServerSocket->AddClient( getServerAddress().toStdString().c_str(), getPort(), 0 );
-                std::cout << "[SenderCommand] Added client: " << clientID << std::endl;
-                connected = clientID >= 0;
-                std::cout << "[SenderCommand] Created a server socket. (UDP for commands)" << std::endl;
-            }
-        }else if( COMMANDS_TRANSMISSION_PROTOCOL == TransmissionProtocol::TCP ){
-            // Create TCP socket if not already:
-            if( !tcpServerSocket->GetConnected() ){
-                int st = tcpServerSocket->CreateServer( getPort() );
-                if( st < 0 ){
-                    std::cerr << "[SenderCommand] Could not create a server socket for commands (TCP)." << std::endl;
-                    connected = false;
-                    return false;
-                }else{
-                    std::cout << "[SenderCommand] Created a server socket. (TCP for commands)" << std::endl;
-                }
-            }
-            // Connect to the server:
-            socket = tcpServerSocket->WaitForConnection( 3000 );
-            if( socket == nullptr ){
-                connected = false;
-                std::cout << "[SenderCommand] Timed out trying to connect to TCP for commands." << std::endl;
-            }else{
-                connected = true;
-            }
-        }else{
-            std::cerr << "[SenderCommand] INVALID PROTOCOL FOR SENDING COMMANDS" << std::endl;
-        }
-    }else{
-        qWarning() << "[SenderCommand] Already connected to send commands. Nothing to do.";
-    }
-    return connected;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

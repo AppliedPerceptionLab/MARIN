@@ -13,7 +13,7 @@
 #include <cstdlib>
 
 #include <QObject>
-#include <QVideoProbe>
+
 #include <QThread>
 #include <QMutex>
 #include <QInputDialog>
@@ -26,9 +26,7 @@
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickView>
-#include <QAbstractVideoSurface>
-#include <QVideoSurfaceFormat>
-#include <QAbstractVideoBuffer>
+
 #include <QImage>
 #include <QHostAddress>
 #include <QNetworkInterface>

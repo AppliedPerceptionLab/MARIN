@@ -20,7 +20,6 @@ uniform int AlphaChannelColour;
 //alpha channel colors are: 1 -> red ; 2 -> green ; 3 -> blue
 uniform bool UseTransparency;
 uniform bool UseGradient;
-uniform bool ShowMask;
 uniform bool TrackerOK;
 uniform vec2 TransparencyPosition;
 uniform vec2 TransparencyRadius;
@@ -80,35 +79,19 @@ void main() {
     //compute transparency factor of the augmentation according to distance to the center of the transparency circle:
     float factor = 0.0;
     if( UseTransparency ){
-
-        //dirty hac to get a circle, but it shifts everything at the same time
-        //so the dirty hack at line 33 becomes necessary:
-//        float dist = distance( vec2(TexCoord.x,TexCoord.y*(1./aspect_ratio)), Position_converted );
         float dist = distance( vec2( TexCoordAugm.x ,TexCoordAugm.y ), Position_converted );
-        //THIS IS NOT A CIRCLE SINCE THE TEXCOORD ARE IN A SQUARE SPACE, AND IT IS TRANSFORMED AFTER TO SCREEN SPACE, SO IT'S SCALED AND THE CIRCLE GETS ELLIPSED
-        //SO, I GUESS I WOULD NEED TO COMPENSATE FOR THAT EFFECT HERE, WHEN I SELECT THE DISTANCE...
         //original shader:
         if( dist < Radius_converted.y ){
             if( dist > Radius_converted.x ){
                 float ratio = ( dist - Radius_converted.x ) / ( Radius_converted.y - Radius_converted.x );
-//                factor = exp(-(ratio*ratio)/0.25);
-                factor = exp(-(ratio*ratio)/GaussianFactor);
+                factor = exp( - ( ratio * ratio ) / GaussianFactor );
             }
             else
                 factor = 1.0;
         }
-        //a square with gaussian decay:
-//        if ( abs(TexCoord.x - Position_converted.x) < Radius_converted.x){
-//            if ( abs(TexCoord.y - Position_converted.y) < Radius_converted.y){
-//                 factor = exp(-(dist*dist)/0.1);
-//            }
-//        }
-        //a circle with gaussian decay:
-//        if ( dist < Radius_converted.x ){       //we use only the first coordinate as the radius
-//            factor = exp(-(dist*dist)/GaussianFactor);
-//        }
+    }else{
+        factor = 1.0;
     }
-    
     //use gradient:
     float alpha = 1.0;
     if( UseGradient ){

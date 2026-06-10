@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include <QObject>
-#include <QVideoProbe>
+
 #include <QCamera>
 #include <QThread>
 #include <QMutex>
@@ -61,7 +61,6 @@ public:
     ~SenderCommand();
     
     bool send() override;
-    bool connect() override;
     
 public slots:
     void toggleAnatomy( int i, bool b );

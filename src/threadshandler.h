@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE QString getClientAddress() const { return r->getClientAddress(); }
     Q_INVOKABLE QString getServerAddress() const { return vs->getServerAddress(); }
     Q_INVOKABLE bool getSendingVideo() const { return vs->sending(); }
+    Q_INVOKABLE bool getSending() const { return vs->sending(); }
 
 signals:
     void serverFound();

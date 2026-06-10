@@ -23,6 +23,8 @@ void OpenIGTLsendThread::run(){
             qInfo() << "[OpenIGTLSendThread] Will wait a second and try sending again.";
             usleep( 1000000 );
         }
+        //sleep a bit here? Otherwise this loop might run too quick (I guess eventually we might want to have this on a timer instead)
+        usleep( 30 );
     }
 }
 
