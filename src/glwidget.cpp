@@ -1,6 +1,7 @@
 #include "glwidget.h"
 #include "qmlmainwindow.h"
 #include <QDebug>
+#include <QFile>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////  CONSTRUCTOR   //////////////////////////////////////////////
@@ -43,6 +44,8 @@ GLWidget::~GLWidget(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////  ANIMATE   //////////////////////////////////////////////
 void GLWidget::animate(){
+    if (!init) return;
+    makeCurrent();
     
     img = receiver->get_current_image();
     f->glBindTexture(GL_TEXTURE_2D, augm_texture);
@@ -60,6 +63,8 @@ void GLWidget::animate(){
 
     //TODO: Perhaps, we should use GLTEXSUBIMAGE2D instead when updating, to test.
     // (and only delete/recreate the texture when the size is changed. Not sure it's an issue anyway.)
+
+    doneCurrent();
 
     //render:
     update();
@@ -89,27 +94,28 @@ void GLWidget::set_camera_image(QVideoFrame * qvf){
 
     //map frame:
     qvf_camera_image = qvf;
-    qvf_camera_image->map(QAbstractVideoBuffer::ReadOnly);
-    //check the format and transform accordingly:
+    qvf_camera_image->map(QVideoFrame::ReadOnly);
+    //check the format and convert accordingly:
     pixel_format = qvf_camera_image->pixelFormat();
-    //QTBUG-79935 (affects versions prior to 5.14.2): No matter what I set in constants.h, the camera resolution is always 1920x1080, which is a problem, as it doesn't have the same aspect ratio.
-    //for now format should be Format_ARGB32
-    if (pixel_format == QVideoFrame::Format_ARGB32){
-        //NO NEED TO CONVERT, JUST PASS THE ARGB IMAGE TO OPENGL
-    }else if (pixel_format == QVideoFrame::Format_NV12){
-        libyuv::NV12ToARGB(qvf_camera_image->bits(0), camera_width, qvf_camera_image->bits(1), camera_width/2, argb, camera_width*4, camera_width, camera_height);
-        //TODO: test
-        qCritical() << "[GLWidget][Debug] This format is not yet supported.";
-    }else if (pixel_format == QVideoFrame::Format_NV21){
-        libyuv::NV21ToARGB(qvf_camera_image->bits(0), camera_width, qvf_camera_image->bits(1), camera_width/2, argb, camera_width*4, camera_width, camera_height);
-        //TODO: Never used this, so still need to test.
+    
+    if (pixel_format == QVideoFrameFormat::Format_ARGB8888){
+        //no need to convert
+        memcpy( argb, qvf_camera_image->bits(0), qvf_camera_image->mappedBytes(0) );
+    }else if (pixel_format == QVideoFrameFormat::Format_NV12){
+        libyuv::NV12ToARGB(qvf_camera_image->bits(0), camera_width, qvf_camera_image->bits(1), camera_width, argb, camera_width*4, camera_width, camera_height);
+    }else if (pixel_format == QVideoFrameFormat::Format_NV21){
+        libyuv::NV21ToARGB(qvf_camera_image->bits(0), camera_width, qvf_camera_image->bits(1), camera_width, argb, camera_width*4, camera_width, camera_height);
     }else{
         qCritical() << "[GLWidget][Debug] This format is not yet supported.";
     }
 
-    f->glBindTexture(GL_TEXTURE_2D, camera_texture);
-    f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CAMERA_WIDTH, CAMERA_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, qvf_camera_image->bits());
-    f->glBindTexture(GL_TEXTURE_2D, 0);
+    makeCurrent();
+
+    f->glBindTexture( GL_TEXTURE_2D, camera_texture );
+    f->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, CAMERA_WIDTH, CAMERA_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, argb );
+    f->glBindTexture( GL_TEXTURE_2D, 0 );
+
+    doneCurrent();
 
     //release memory and call render:
     qvf_camera_image->unmap();
@@ -127,11 +133,12 @@ void GLWidget::initializeGL(){
         qInfo() << "GL_VERSION:" << QString((char*)f->glGetString(GL_VERSION));
         qInfo() << "GL_SHADING_LANGUAGE_VERSION:" << QString((char*)f->glGetString(GL_SHADING_LANGUAGE_VERSION));
         qInfo() << "GL_EXTENSIONS:" << QString((char*)f->glGetString(GL_EXTENSIONS));
-        qInfo() << "\t" << GL_NO_ERROR << "::= GL_NO_ERROR\n"
+        qInfo() << "   " << GL_NO_ERROR << "::= GL_NO_ERROR\n"
                 << GL_INVALID_ENUM << "::= GL_INVALID_ENUM\n"
                 << GL_INVALID_VALUE << "::= GL_INVALID_VALUE\n"
                 << GL_INVALID_OPERATION << "::= GL_INVALID_OPERATION\n"
-                << GL_OUT_OF_MEMORY << "::= GL_OUT_OF_MEMORY\n";
+                << GL_OUT_OF_MEMORY << "::= GL_OUT_OF_MEMORY\n"
+                << GL_INVALID_FRAMEBUFFER_OPERATION << "::= GL_INVALID_FRAMEBUFFER_OPERATION\n";
     }
 
     //init:
@@ -283,21 +290,14 @@ void GLWidget::initializeGL(){
     if( bogus != -1 ){
         f->glUniform1i( bogus, UseTransparency );
     }else{
-        qWarning("UseTransparency couldn't be loaded.");
+        qWarning("[GlWidget][Warning] UseTransparency couldn't be loaded.");
     }
     //define UseGradient
     bogus = f->glGetUniformLocation( shader_programme, "UseGradient" );
     if( bogus != -1 ){
         f->glUniform1i( bogus, UseGradient );
     }else{
-        qWarning("UseGradient couldn't be loaded.");
-    }
-    //define show mask:
-    bogus = f->glGetUniformLocation( shader_programme, "ShowMask" );
-    if( bogus != -1 ){
-        f->glUniform1i( bogus, ShowMask );
-    }else{
-        qWarning("ShowMask couldn't be loaded.");
+        qWarning("[GlWidget][Warning] UseGradient couldn't be loaded.");
     }
     //define TransparencyPosition:
     bogus = f->glGetUniformLocation( shader_programme, "TransparencyPosition" );
@@ -405,7 +405,7 @@ void GLWidget::setCameraImageResolution( int w, int h ){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////  SET_CAMERA_PIXEL_FORMAT   ///////////////////////////////////////
-void GLWidget::setPixelFormat( QVideoFrame::PixelFormat format ){
+void GLWidget::setPixelFormat( QVideoFrameFormat::PixelFormat format ){
     pixel_format = format;
 }
 

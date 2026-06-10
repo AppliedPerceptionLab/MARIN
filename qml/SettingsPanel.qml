@@ -1,7 +1,6 @@
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Layouts 1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
     id: settingsPannelContainer
@@ -167,13 +166,19 @@ Item {
             height: 70
             checked: th.getSending()
             objectName: "senderToggleButton"
-            style: SwitchStyle {
-                groove: Rectangle {
-                        implicitWidth: 70
-                        implicitHeight: 20
-                        border.color: "gray"
-                        border.width: 1
-                        color: senderToggleButton.checked ? "green" : "gray"
+            indicator: Rectangle {
+                implicitWidth: 70
+                implicitHeight: 20
+                y: parent.height / 2 - height / 2
+                border.color: "gray"
+                border.width: 1
+                color: senderToggleButton.checked ? "green" : "gray"
+                Rectangle {
+                    x: senderToggleButton.checked ? parent.width - width : 0
+                    width: 20
+                    height: 20
+                    color: "white"
+                    border.color: "gray"
                 }
             }
             onClicked: {
@@ -241,13 +246,19 @@ Item {
             height: 70
             checked: true
             objectName: "receiverToggleButton"
-            style: SwitchStyle {
-                groove: Rectangle {
-                        implicitWidth: 70
-                        implicitHeight: 20
-                        border.color: "gray"
-                        border.width: 1
-                        color: receiverToggleButton.checked ? "green" : "gray"
+            indicator: Rectangle {
+                implicitWidth: 70
+                implicitHeight: 20
+                y: parent.height / 2 - height / 2
+                border.color: "gray"
+                border.width: 1
+                color: receiverToggleButton.checked ? "green" : "gray"
+                Rectangle {
+                    x: receiverToggleButton.checked ? parent.width - width : 0
+                    width: 20
+                    height: 20
+                    color: "white"
+                    border.color: "gray"
                 }
             }
             onClicked: {

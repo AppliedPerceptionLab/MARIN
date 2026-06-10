@@ -6,9 +6,10 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
+#include <QVideoFrameFormat>
 
 #include "receiver.h"
-#include "gestureHandler.h"
+#include "gesturehandler.h"
 #include "constants.h"
 
 //the AR field cannot be less than RESIZE_LIMIT pixels of radius
@@ -23,7 +24,7 @@ public:
     GLWidget( QWidget *parent, int w, int h );
     void setReceiver( Receiver * r );
     void setCameraImageResolution( int w, int h );
-    void setPixelFormat( QVideoFrame::PixelFormat format );
+    void setPixelFormat( QVideoFrameFormat::PixelFormat format );
     void changeGaussian( float val );
     void changeRadius( float inner, float outer );
     ~GLWidget() override;
@@ -75,7 +76,7 @@ private:
     uchar * rgb;
     uchar * argb;
     //image parameters:
-    QVideoFrame::PixelFormat pixel_format = QVideoFrame::PixelFormat::Format_Invalid;
+    QVideoFrameFormat::PixelFormat pixel_format = QVideoFrameFormat::Format_Invalid;
     //opengl vars:
     QOpenGLVertexArrayObject * m_vao1;
     QOpenGLBuffer * m_positionBuffer;
@@ -91,9 +92,8 @@ private:
     GLuint Vplane;
     GLint texLoc;
     //gradient and transparency shading:
-    bool UseTransparency = true;
-    bool UseGradient = true;
-    bool ShowMask = true;
+    bool UseTransparency = USE_TRANSPARENCY;
+    bool UseGradient = USE_GRADIENT_PASSTHROUGH;
     float TransparencyPosition[2];
     float TransparencyRadius[2];
     float Resolution[2];

@@ -2,7 +2,7 @@
 #define CAMERA_H
 
 #include <QCamera>
-#include <QCameraImageCapture>
+#include <QCamera>
 
 class Camera: public QObject{
     Q_OBJECT
@@ -18,7 +18,6 @@ public slots:
 
 private:
     QCamera * camera;
-    QCameraFocus * FocusObj;
 };
 
 #endif

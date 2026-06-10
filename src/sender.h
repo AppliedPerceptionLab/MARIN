@@ -16,7 +16,6 @@
 #include <string.h>
 
 #include <QObject>
-#include <QVideoProbe>
 #include <QCamera>
 #include <QThread>
 #include <QMutex>
@@ -63,7 +62,8 @@ public:
     
     QObject * parent;
     virtual bool send() = 0;
-    virtual bool connect() = 0;
+    bool connect( std::string connection_description = "" );
+    TransmissionProtocol protocol = TransmissionProtocol::PROTOCOL_UNDEFINED;
     
     void closeSocket();
     int getPort() { return port; }
