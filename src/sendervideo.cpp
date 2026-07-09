@@ -409,7 +409,7 @@ bool SenderVideo::setEncoder( int w, int h ){
     if( VIDEO_MODE == VideoModes::H264 ){
         h264StreamEncoder->SetPicWidthAndHeight( w, h );
         h264StreamEncoder->SetRCMode( IMAGE_SEND_MODE );
-        h264StreamEncoder->SetRCTaregetBitRate( TARGET_BIT_RATE );
+        h264StreamEncoder->SetRCTargetBitRate( TARGET_BIT_RATE );
         h264StreamEncoder->InitializeEncoder();
         encoder = h264StreamEncoder;
     }else if( VIDEO_MODE == VideoModes::I420 ){
