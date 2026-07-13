@@ -47,20 +47,12 @@ VERSION = 1.0.0
 QMAKE_INFO_PLIST = Info.plist
 
 INCLUDEPATH += \
-    /PathToOpenIGTLink/Source \
-    /PathToOpenIGTLink/Source/VideoStreaming \
-    /PathToOpenIGTLink/Source/igtlutil \
-    /PathToOpenIGTLinkBuild \
-    /PathToOpenIGTLinkBuild/lib/Debug \
-    /PathToOpenIGTLinkBuild/Deps/openh264 \
-    /PathToOpenIGTLinkBuild/Deps/openh264/codec \
-    /PathToOpenIGTLinkBuild/Deps/openh264/codec/api/wels \
+    includes/OpenIGTLink \
+    includes/OpenIGTLink/VideoStreaming \
+    includes/OpenIGTLink/igtlutil \
+    includes/openh264/codec/api/wels \
     includes/libyuv \
     includes/libyuv/libyuv
-
-#For now, MARIN looks for libraries in the lib folder. It is the user's responsability to compile necessary libraries and place them in proper locations.
-#Should be present: libyuv (an arm64 build is provided), openigtlink and openh264
-#TODO: should make a super build for external libraries
 
 LIBS += -L$$PWD/lib/libyuv_internal/ -lyuv_internal
 INCLUDEPATH += $$PWD/lib/libyuv_internal
