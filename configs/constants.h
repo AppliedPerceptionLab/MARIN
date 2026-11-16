@@ -68,6 +68,7 @@ enum TransmissionProtocol { PROTOCOL_UNDEFINED, TCP, UDP };
 #define COMMANDS_RECEIVER_PORT 18949                            // TCP port to receive commands/status updates from
 
 #define INITIALLY_SENDING_VIDEO true
+#define INITIALLY_RECEIVING_VIDEO true
 //TODO: Add toggles for other streams
 //----------------------------------------------------------------//
 //----------------------------------------------------------------//

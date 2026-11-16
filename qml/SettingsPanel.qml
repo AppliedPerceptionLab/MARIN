@@ -244,7 +244,7 @@ Item {
             y: 278
             width: 70
             height: 70
-            checked: true
+            checked: th.getReceiving()
             objectName: "receiverToggleButton"
             indicator: Rectangle {
                 implicitWidth: 70

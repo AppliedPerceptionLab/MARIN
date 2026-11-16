@@ -71,6 +71,13 @@ public:
     void WriteTimeInfo(unsigned char * UDPPacket);
     QMutex * getRTPMutex() { return glock; }
     QString getClientAddress() { return thisaddress; }
+    bool receiving() { return m_receiving; }
+    void setReceiving( const bool b ) {
+        if( b == m_receiving ){
+            return;
+        }
+        m_receiving = b;
+    }
 
 public slots:
     void change_port_video( int p );
@@ -100,6 +107,7 @@ private:
     QImage * act_img;
 
     bool stillReceiving = true;
+    bool m_receiving = INITIALLY_RECEIVING_VIDEO;
     
     H264Decoder * h264StreamDecoder = new H264Decoder();
     GenericDecoder * decoder = h264StreamDecoder;

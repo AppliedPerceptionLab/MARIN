@@ -1,5 +1,6 @@
 #include "receiver.h"
 #include "igtlMultiThreader.h"
+#include <QSettings>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////// UNWRAP_THREAD ////////////////////////////////////////////////
@@ -67,7 +68,12 @@ Receiver::Receiver(QObject *parent, QString ta ) : QObject(parent){
     thisaddress = ta;
     act_img = new QImage(AUGMENTATION_WIDTH, AUGMENTATION_HEIGHT, QImage::Format_ARGB32);
 
-    connectVideo();
+    QSettings settings( THIS_DEVICE_NAME, THIS_DEVICE_NAME );
+    setReceiving( settings.value( "receivingVideo", INITIALLY_RECEIVING_VIDEO ).toBool() );
+
+    if( receiving() ){
+        connectVideo();
+    }
 
     Receiver * receiver = this;
     readThreadID = threader->SpawnThread((igtl::ThreadFunctionType)&ThreadFunctionReadSocket, receiver);
@@ -230,6 +236,7 @@ bool Receiver::connectCommands(){
 /////////////////////////////////////////////   CLOSE_SOCKET   /////////////////////////////////////////
 void Receiver::closeSocket(){
     UDPSocket->CloseSocket();
+    connected_video = false;
 }
 
 #include <QString>

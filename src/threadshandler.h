@@ -30,6 +30,9 @@ public:
     Q_INVOKABLE QString getServerAddress() const { return vs->getServerAddress(); }
     Q_INVOKABLE bool getSendingVideo() const { return vs->sending(); }
     Q_INVOKABLE bool getSending() const { return vs->sending(); }
+    Q_INVOKABLE bool getReceivingVideo() const { return r->receiving(); }
+    Q_INVOKABLE bool getReceiving() const { return r->receiving(); }
+    void saveSettings() const;
 
 signals:
     void serverFound();
@@ -43,9 +46,9 @@ public slots:
     void quit();
     
 private:
-    Sender * vs;
-    Sender * cs;
-    Receiver * r;
+    Sender * vs = nullptr;
+    Sender * cs = nullptr;
+    Receiver * r = nullptr;
     VideoReceiveThread * vrt;
     CommandsReceiveThread * crt;
     OpenIGTLsendThread * videoSendThread;

@@ -1,10 +1,12 @@
 #include "sendervideo.h"
+#include <QSettings>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////  CONSTRUCTOR  //////////////////////////////////////////////
 SenderVideo::SenderVideo( QObject *parent, QString thisaddress, int port, int w, int h, int frw, int frh ) : Sender( parent, thisaddress, port ) {
     
-    setSending( INITIALLY_SENDING_VIDEO );
+    QSettings settings( THIS_DEVICE_NAME, THIS_DEVICE_NAME );
+    setSending( settings.value( "sendingVideo", INITIALLY_SENDING_VIDEO ).toBool() );
     qInfo() << "[SenderVideo] Will send image/video to " << getServerAddress();
     width = w;
     height = h;

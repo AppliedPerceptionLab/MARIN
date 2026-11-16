@@ -1,6 +1,7 @@
 #include "threadshandler.h"
 #include <QtNetwork>
 #include <QHostAddress>
+#include <QSettings>
 
 ThreadsHandler::ThreadsHandler( QObject *parent ) : QObject( parent ){
     //create send thread:
@@ -15,6 +16,7 @@ ThreadsHandler::ThreadsHandler( QObject *parent ) : QObject( parent ){
 }
 
 ThreadsHandler::~ThreadsHandler(){
+    saveSettings();
     delete vrt;
     delete crt;
     delete videoSendThread;
@@ -48,16 +50,31 @@ void ThreadsHandler::startSenders(){
 }
 
 void ThreadsHandler::startReceiver(){
-    vrt->start();
+    if( r->receiving() ){
+        vrt->start();
+    }
     crt->start();
+}
+
+void ThreadsHandler::saveSettings() const{
+    QSettings settings( THIS_DEVICE_NAME, THIS_DEVICE_NAME );
+    if( vs ){
+        settings.setValue( "sendingVideo", vs->sending() );
+    }
+    if( r ){
+        settings.setValue( "receivingVideo", r->receiving() );
+    }
+    settings.sync();
 }
 
 //TODO: should have some sort of pause variable instead. This should all be reworked.
 void ThreadsHandler::toggleSender( bool b ){
     vs->setSending( b );
+    saveSettings();
 }
 
 void ThreadsHandler::toggleReceiver( bool b ){
+    r->setReceiving( b );
     if( b ){
         vrt = new VideoReceiveThread();
         vrt->setReceiver( r );
@@ -65,9 +82,11 @@ void ThreadsHandler::toggleReceiver( bool b ){
     }else{
         vrt->end();
     }
+    saveSettings();
 }
 
 void ThreadsHandler::quit(){
+    saveSettings();
     qInfo() << "[ThreadsHandler] Requesting both threads to stop.";
     videoSendThread->end();
     commandsSendThread->end();
